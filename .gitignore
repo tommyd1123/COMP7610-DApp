@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# 本地合约地址。例子在 .env.example，可以提交。
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
