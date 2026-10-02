@@ -1,140 +1,36 @@
-import { useState } from "react";
-import { isAddress } from "ethers";
-import { CONTRACT_ADDRESS, SEPOLIA_EXPLORER_URL } from "./config/contract.js";
-import { claimTicket, connectAccount } from "./wallet/ethereum.js";
-import { shortAddress } from "./ui/format.js";
+import { useEffect, useState } from "react";
+import { ClaimPage } from "./pages/ClaimPage.jsx";
+import { DoorPage } from "./pages/DoorPage.jsx";
+import "./App.css";
+
+function pageFromHash() {
+  return window.location.hash === "#door" ? "door" : "claim";
+}
 
 export default function App() {
-  const [walletAddr, setWalletAddr] = useState("");
-  const [claimedNft, setClaimedNft] = useState(false);
-  const [transactionId, setTransactionId] = useState("");
-  const [hintText, setHintText] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [page, setPage] = useState(pageFromHash);
 
-  const contractConfigured = isAddress(CONTRACT_ADDRESS);
-
-  let claimBtnText = "Claim NFT";
-  if (claimedNft) claimBtnText = "NFT already claimed";
-  if (isProcessing) claimBtnText = "Processing...";
-
-  async function connectWallet() {
-    setHintText("");
-    try {
-      const account = await connectAccount();
-      setWalletAddr(account);
-    } catch (error) {
-      setHintText(error.message || "Could not connect wallet");
+  useEffect(() => {
+    function onHashChange() {
+      setPage(pageFromHash());
     }
-  }
-
-  async function mint() {
-    setIsProcessing(true);
-    setHintText("");
-    try {
-      const hash = await claimTicket();
-      setTransactionId(hash);
-      setClaimedNft(true);
-    } catch (error) {
-      setHintText(error.message || "Could not send transaction");
-    } finally {
-      setIsProcessing(false);
-    }
-  }
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   return (
-    <div style={{
-      maxWidth: "600px",
-      margin: "4rem auto",
-      padding: "2rem",
-      backgroundColor: "#f0f4f8",
-      borderRadius: "16px",
-      fontFamily: "sans-serif"
-    }}>
-      <h2 style={{color:"#1a202c"}}>Sepolia NFT Claim System</h2>
-      <p style={{color:"#4a5568"}}>
-        This DApp lets users claim one NFT ticket on Sepolia testnet.
-      </p>
-
-      {!contractConfigured && (
-        <p style={{
-          padding:"10px",
-          backgroundColor:"#fff3cd",
-          color:"#856404",
-          borderRadius:"8px"
-        }}>
-          ⚠️ Warning: Please fill your deployed contract address in environment file first.
-        </p>
-      )}
-
-      {!walletAddr ? (
-        <button
-          onClick={connectWallet}
-          style={{
-            padding:"10px 20px",
-            backgroundColor:"#2b6cb0",
-            color:"white",
-            border:"none",
-            borderRadius:"8px",
-            fontSize:"16px",
-            cursor:"pointer"
-          }}
-        >
-          Link MetaMask Wallet
-        </button>
-      ) : (
-        <div style={{marginTop:"16px"}}>
-          <p style={{color:"#2d3748"}}>
-            Wallet Connected: <strong>{shortAddress(walletAddr)}</strong>
-          </p>
-          <button
-            onClick={mint}
-            disabled={isProcessing || claimedNft || !contractConfigured}
-            style={{
-              marginTop:"8px",
-              padding:"10px 20px",
-              backgroundColor:"#38a169",
-              color:"white",
-              border:"none",
-              borderRadius:"8px",
-              fontSize:"16px",
-              cursor:"pointer"
-            }}
-          >
-            {claimBtnText}
-          </button>
-        </div>
-      )}
-
-      {hintText && (
-        <p style={{marginTop:"16px", color:"#2d3748"}}>
-          Status: {hintText}
-        </p>
-      )}
-
-      {transactionId && (
-        <a
-          href={`${SEPOLIA_EXPLORER_URL}/tx/${transactionId}`}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display:"inline-block",
-            marginTop:"12px",
-            color:"#2b6cb0"
-          }}
-        >
-          Check transaction record: {shortAddress(transactionId)} →
+    <main className="app">
+      <p className="eyebrow">Sepolia seminar</p>
+      <h1>Seminar tickets</h1>
+      <nav className="nav">
+        <a href="#claim" aria-current={page === "claim" ? "page" : undefined}>
+          Claim a seat
         </a>
-      )}
-
-      <div style={{marginTop:"32px", paddingTop:"16px", borderTop:"1px solid #cbd5e0"}}>
-        <h4>Workflow Overview</h4>
-        <ul style={{paddingLeft:"20px", color:"#4a5568"}}>
-          <li>Connect MetaMask wallet and switch to Sepolia</li>
-          <li>Send transaction to NFT smart contract</li>
-          <li>Wait for block confirmation on blockchain</li>
-          <li>Each wallet can claim only one NFT</li>
-        </ul>
-      </div>
-    </div>
+        <a href="#door" aria-current={page === "door" ? "page" : undefined}>
+          Door
+        </a>
+      </nav>
+      {page === "door" ? <DoorPage /> : <ClaimPage />}
+    </main>
   );
 }
