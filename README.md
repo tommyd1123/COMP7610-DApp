@@ -6,18 +6,39 @@ English summary: a five-person course project. The page must connect a wallet, c
 
 ## 故事
 
-这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数和入场核销。合约和两个页面都还没写完，下面是要做成的故事。
+这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数、转让、退票和入场核销。当前代码只有两个占位页面；新版设计安排三个业务页面，合约和网页功能都还未实现。
 
 一个学生社团办一场免费讲座，一共 50 个座位。同学现在如果用表格报名，干部可以改名单，同一个人可以提交两次，别人只能看截图。
 
-故事分成两段，对应两个页面：
+故事包含四个操作，分别放在活动、我的门票、主办方三个页面里：
 
-1. **领票**（`#claim`）。同学连接自己的钱包，领取一张入场 NFT。还有空位才能领，领完剩余座位减一，座位满了就拒绝。同一个地址不能领第二次。
-2. **入场**（`#door`）。工作人员用另一个钱包，填入同学的地址，核销一次。合约记下已入场，第二次核销会失败。
+1. **领票**（`#claim`）。同学连接钱包，有空位、当前没有有效票、这个地址未入场，才能领取。剩余座位减一，每个地址最多持有一张有效票。
+2. **转让**（`#ticket` 的「我的门票」）。持有人把未核销票转给另一同学，入场资格跟着 NFT 转移，剩余座位不变。转出后可以重新领取。
+3. **退票**（同一「我的门票」页面）。持有人把未核销 NFT 交回主办方，也就是部署者钱包，取消入场资格，剩余座位加一。下一次领取优先复用这张退回票；原持有人也可以重新领取。票免费，没有退款。
+4. **入场**（`#door`）。部署者钱包是主办方，按票号核销当前持有人。已核销 NFT 留在同学钱包作纪念，但不能再转让、退票或重复核销，已入场地址也不能再次领取或接收票。
 
-两笔都是 Sepolia 上的交易，都可以在 Etherscan 打开。一个人换一个钱包再领一张，这版挡不住。票上没有图片。
+四个操作都是 Sepolia 上的交易，都可以在 Etherscan 打开。一个人换一个钱包再领一张，这版挡不住。票上没有图片。
 
-> A student claims one free seminar seat while seats remain. Staff later check that student in once. Anyone can verify both transactions on Etherscan.
+> Students claim a free seminar ticket, transfer it to another student, or return it to the organizer so the seat can be claimed again. The organizer checks in the current ticket holder once.
+
+完整规则、拟定接口和验收步骤见 [`docs/03-转让退票与票务流程.md`](docs/03-转让退票与票务流程.md)。该文件是下一步实现方案；当前源码占位和 ABI 仍是旧版，成员 2、3、5 先同步接口，再分别实现。
+
+页面数量、钱包弹窗、按钮跳转和界面状态见 [`docs/04-页面与交互设计.md`](docs/04-页面与交互设计.md)。
+
+## 设计与原型演示
+
+[Figma 黑白灰设计稿](https://www.figma.com/design/heOrdlDjJbrbyY5WagefQH/COMP7610-%C2%B7-Seminar-Tickets-%C2%B7-Monochrome?node-id=0-1&t=IKL0Dn3s5v6NEcxV-1)
+
+设计包含三个页面：活动领票、我的门票、主办方检票。连接钱包使用共用弹窗；转让和退票在「我的门票」里完成。完整闭环是连接钱包 → 领票 → 持有、转让或退票 → 主办方检票 → 保留已核销纪念 NFT。退票释放名额，原票可再次领取。
+
+- [62 秒原型操作录屏](docs/demo/DAPP-原型操作演示.mp4)
+- 核心截图：[活动领票](docs/demo/01-活动领票.png)、[我的门票](docs/demo/02-我的门票.png)、[主办方检票](docs/demo/03-主办方检票.png)
+- [已核销纪念票状态](docs/demo/04-已核销纪念票.png)（属于「我的门票」，不是第四个页面）
+- [发给组员的精简说明](docs/demo/发给组员的说明.txt)
+
+![三个核心页面总览](docs/demo/三个核心页面总览.png)
+
+截图和录屏展示 Figma 原型的模拟交互，数值和地址是演示数据；链上交易、前端和合约功能仍待实现。
 
 ## 你现在只要做这三件事
 
@@ -47,12 +68,13 @@ English summary: a five-person course project. The page must connect a wallet, c
 | 路径 | 谁改 | 里面是什么 |
 | --- | --- | --- |
 | `contracts/` | 成员 2 | 合约。现在只有要写的函数名单，Solidity 还没写 |
-| `src/config/contract.js` | 成员 1、2 | 合约地址、ABI、座位上限 50、链 ID |
-| `src/wallet/ethereum.js` | 成员 3 | 连接钱包、领票、入场核销。三个函数都会抛出「还没实现」 |
-| `src/chain/read.js` | 成员 5 | 剩余座位、是否领过、是否已入场。只读，还没实现 |
-| `src/pages/ClaimPage.jsx` | 成员 4 | 领票页框架 |
-| `src/pages/DoorPage.jsx` | 成员 4 | 入场页框架 |
-| `src/App.jsx` | 成员 4 | 只负责在两个页面之间切换 |
+| `src/config/contract.js` | 成员 1、2 | 合约地址、ABI、座位上限 50、链 ID；ABI 待按 `docs/03` 更新 |
+| `src/wallet/ethereum.js` | 成员 3 | 当前连接、领票、核销三个函数未实现；还需加转让和退票 |
+| `src/chain/read.js` | 成员 5 | 当前查询未实现；需改为有效票号、当前所有者、票状态、是否入场和剩余座位 |
+| `src/pages/ClaimPage.jsx` | 成员 4 | 现有领票页框架；新版活动与领票页 |
+| `src/pages/TicketPage.jsx`（待新建） | 成员 4 | 我的门票、转让、退票和纪念票状态 |
+| `src/pages/DoorPage.jsx` | 成员 4 | 入场页框架；待按票号查询和核销 |
+| `src/App.jsx` | 成员 4 | 当前切换两个页面；待增加 `#ticket`，共享钱包状态与弹窗 |
 | `docs/` | 全组读，成员 5 收报告 | 作业要求、老师给的代码、分工、报告草稿 |
 | `.env` | 每人自己本地有一份 | 不提交。从 `.env.example` 复制 |
 
@@ -69,7 +91,7 @@ npm run dev
 
 终端会打印本地地址，一般是 `http://localhost:5173`。用已经装好 MetaMask 的浏览器打开。打开页面前，在扩展里把网络选成 Sepolia。
 
-你会看到顶部两个链接：Claim a seat 和 Door。页面里只有标题和一句「留给成员 4」。这是框架，不是做完的功能。等成员 2 在 Sepolia 部署之后，把地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`。
+当前代码会显示顶部两个链接：Claim a seat 和 Door。页面里只有标题和一句「留给成员 4」；设计稿中的 My ticket 尚未接入代码。等成员 2 在 Sepolia 部署之后，把地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`。
 
 其他命令：
 
@@ -90,8 +112,9 @@ npm run dev
 
 ## 还没做完的事
 
-- 两个页面、钱包函数、只读查询、合约源码都还是空位，按 `docs/02-五人分工与报告.md` 各自去写。
+- 现有两个页面、钱包函数、只读查询、合约源码都还是空位；新版还需新增我的门票页面与全局钱包弹窗，按 `docs/02` 和 `docs/04` 分工实现。
+- 2026-10-08 新增的转让、退票、退票复用和按票号核销目前仅完成规划，详见 `docs/03-转让退票与票务流程.md`。
 - 还没有部署到 Sepolia 的合约地址，也还没有演示用的交易哈希。
 - 报告正文还没写，大纲在 `docs/report/大纲.md`。
 
-终稿截止：2026-11-08 23:59。小组交视频、报告 PDF 和本仓库。每个人另外在 Moodle 交 Peer assignment 04。
+终稿截止：2026-11-08 23:59。小组交视频、报告 PDF 和本仓库。每个人另外交 Peer assignment，具体入口和题目以 Moodle 为准。

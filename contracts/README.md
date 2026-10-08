@@ -4,12 +4,18 @@
 
 这里放小组自己的 Solidity。文件还没建。老师的教学合约在 `docs/01-教授给的框架和代码.md`，部署步骤以老师示例仓库的 README 为准。
 
-要对上 `src/config/contract.js` 里的函数名单：
+完整合约规则见 [`../docs/03-转让退票与票务流程.md`](../docs/03-转让退票与票务流程.md)。新增功能还没有实现，`src/config/contract.js` 仍是旧版 ABI，写合约时一起更新。
 
-- `claim()`：还有剩余座位、并且这个地址没领过，才发一张票
-- `admit(address)`：把这个地址核销一次，第二次拒绝
-- `remaining()`、`seatCap()`、`hasClaimed(address)`、`admitted(address)`：只读
+- `claim()`：有空位、当前没有有效票且未入场的同学领取；优先复用退票，再铸造新票
+- `transferTicket(address,uint256)`：当前持有人把未核销票转给另一合资格同学
+- `returnTicket(uint256)`：当前持有人把未核销 NFT 退回部署者钱包，释放一个名额
+- `admit(uint256)`：仅部署者 / 主办方按票号核销当前持有人；已核销票冻结，保留作纪念
+- `organizer()`、`remaining()`、`seatCap()`、`activeTicketOf(address)`、`hasEntered(address)`、`ticketState(uint256)`、ERC-721 的 `ownerOf(uint256)`：只读
 - 座位上限用 `SEAT_CAP`，现在是 50
+
+地址最多持有一张有效票，转出或退票后可以重新领取；已入场地址不能再次领票或收票。票号从 1 开始，`activeTicketOf` 返回 0 表示无有效票。不能继续用永久的 `hasClaimed` 限制领取，也不能用 NFT 总余额判断入场资格。
+
+转让、退票、核销状态按票号记录。所有标准 ERC-721 转移入口都要执行相同的规则；直接转给主办方按退票处理，主办方库存只能通过领取流程发出。总铸造量不超过 50，并保持「剩余座位 + 有效票数 + 已核销票数 = 50」。
 
 完成后请留下：
 
