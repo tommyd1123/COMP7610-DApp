@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+artifacts/
+cache/
 
 # 本地合约地址。例子在 .env.example，可以提交。
 .env

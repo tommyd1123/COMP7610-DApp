@@ -7,7 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "compile:contract": "node scripts/compile-contract.mjs",
+    "test:contract": "node --test test/SeminarTickets.test.mjs",
+    "prepare:deployment": "node scripts/prepare-deployment.mjs",
+    "verify:deployment": "node scripts/verify-deployment.mjs",
+    "test:deployment": "node --test test/DeploymentTools.test.mjs",
+    "preview:deployment": "node scripts/deployment-preview.mjs",
+    "test:deployment-preview": "node --test test/DeploymentPreview.test.mjs"
   },
   "dependencies": {
     "ethers": "^6.17.0",
@@ -15,10 +22,13 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@openzeppelin/contracts": "5.6.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "hardhat": "2.28.6",
     "oxlint": "^1.81.0",
+    "solc": "0.8.30",
     "vite": "^8.3.0"
   }
 }

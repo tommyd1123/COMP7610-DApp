@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SeminarTickets · Sepolia 部署与验收</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header><span class="tag">本地开发工具 · SEPOLIA</span><h1>SeminarTickets 部署与验收</h1><p>所有写操作均需点击按钮并在 MetaMask 确认。金额为 0，仅支付测试网 gas。</p></header>
+      <section>
+        <h2>1. 钱包与批准账户</h2>
+        <dl><dt>主办方 · Account 2</dt><dd id="organizer"></dd><dt>学生 · Account 1</dt><dd id="student"></dd><dt>当前连接</dt><dd id="connected">未连接</dd><dt>网络</dt><dd id="network">尚未读取</dd></dl>
+        <div class="buttons"><button id="connect">连接 MetaMask</button><button id="refresh" class="secondary">刷新账户、回执与状态</button></div>
+      </section>
+      <section>
+        <h2>2. 部署或加载合约</h2>
+        <p id="compiler">正在读取本地编译产物…</p>
+        <button id="deploy">使用 Account 2 部署（value = 0）</button>
+        <label for="contract-address">已有合约地址</label>
+        <div class="address-row"><input id="contract-address" placeholder="0x…" spellcheck="false" autocomplete="off" /><button id="load" class="secondary">加载并核对代码</button></div>
+        <p id="verification" class="muted">尚未加载合约。</p>
+      </section>
+      <section>
+        <h2>3. 学生生命周期演示</h2>
+        <p>切换到 Account 1 后依次领取 → 退票 → 重新领取。每一步必须先等待上一笔回执。</p>
+        <div class="buttons"><button id="claim">Account 1 领取</button><button id="return" class="secondary">Account 1 退票</button><button id="reclaim" class="secondary">Account 1 重新领取</button></div>
+        <pre id="state">尚无链上状态。</pre>
+      </section>
+      <p id="message" role="status" aria-live="polite">页面不会自动发送交易。</p>
+      <section>
+        <h2>4. 交易记录与完整证据</h2>
+        <p class="muted">交易哈希收到后立即保存在此浏览器的 localStorage。刷新后连接同一钱包即可恢复查询；不要清除浏览器存储。</p>
+        <div id="transactions"></div>
+        <button id="clear-unsigned" class="secondary" hidden>已确认钱包未广播：清除无哈希等待标记</button>
+        <details><summary>查看可复制的 JSON 记录</summary><pre id="evidence">{}</pre></details>
+      </section>
+    </main>
+  </body>
+</html>

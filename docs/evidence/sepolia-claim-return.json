@@ -1,0 +1,79 @@
+{
+  "verified": true,
+  "scope": "First claim and return only. Reclaim is not completed in this evidence.",
+  "chainId": "11155111",
+  "contractAddress": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+  "transactions": [
+    {
+      "action": "claim",
+      "hash": "0x25c0d688a5e34c4332bc641a3f9a91430d7fc109f370892bf7820f7a53797175",
+      "status": 1,
+      "from": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+      "to": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+      "value": "0",
+      "blockNumber": 11984416,
+      "blockHash": "0xd4b82d09beea7324662e1db15eea82151c797490566b7a9c9082b05a1a701cbb",
+      "events": [
+        {
+          "name": "Transfer",
+          "args": [
+            "0x0000000000000000000000000000000000000000",
+            "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "1"
+          ]
+        },
+        {
+          "name": "TicketClaimed",
+          "args": [
+            "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "1",
+            false
+          ]
+        }
+      ],
+      "stateAtReceiptBlock": {
+        "remaining": "49",
+        "totalMinted": "1",
+        "tokenId": "1",
+        "owner": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+        "ticketState": "ACTIVE",
+        "activeTicketOf": "1"
+      }
+    },
+    {
+      "action": "returnTicket",
+      "hash": "0xf3937e97ac65e42508ab7b48c6ef64477b47a567963a7eca4f6eecb419d02fac",
+      "status": 1,
+      "from": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+      "to": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+      "value": "0",
+      "blockNumber": 11984447,
+      "blockHash": "0x669df4d6c9e94387be872aa1e74ae0fedf1c484870d36ec37a6e3d48833c5134",
+      "events": [
+        {
+          "name": "Transfer",
+          "args": [
+            "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+            "1"
+          ]
+        },
+        {
+          "name": "TicketReturned",
+          "args": [
+            "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "1"
+          ]
+        }
+      ],
+      "stateAtReceiptBlock": {
+        "remaining": "50",
+        "totalMinted": "1",
+        "tokenId": "1",
+        "owner": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+        "ticketState": "AVAILABLE",
+        "activeTicketOf": "0"
+      }
+    }
+  ]
+}

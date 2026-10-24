@@ -1,0 +1,48 @@
+{
+  "verified": true,
+  "chainId": "11155111",
+  "contractAddress": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+  "organizer": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+  "snapshot": {
+    "blockNumber": 11984383,
+    "blockHash": "0xa90ea96ecf0f9f24547accae1adcd5e9b05161315a8a69d0749be628f43be94a",
+    "blockTimestampUtc": "2026-10-24T14:29:48.000Z"
+  },
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "optimizer": {
+    "enabled": true,
+    "runs": 200
+  },
+  "evmVersion": "cancun",
+  "code": {
+    "matches": true,
+    "method": "Compare executable runtime bytes after filling organizer immutable references; exclude the Solidity metadata trailer.",
+    "runtimeBytecodeSha256": "5efe671eaf9f281b1f127cd01408d3f7f1ba09505625e78548cc21b6900e6181",
+    "executableBytecodeSha256": "bb075decbb6156e8d2aa0160c5ae6686a5f61d82559e45b114dbd23d9c452d7f",
+    "metadataMatchesPrepared": true,
+    "organizerImmutableReferenceCount": 10
+  },
+  "state": {
+    "name": "Seminar Tickets",
+    "symbol": "SEAT",
+    "seatCap": "50",
+    "remaining": "50",
+    "totalMinted": "0",
+    "activeCount": "0",
+    "usedCount": "0",
+    "returnedInventoryCount": "0",
+    "isInitialState": true
+  },
+  "tickets": [],
+  "deploymentTransaction": {
+    "hash": "0xab973e92f52498745b6add116d73b5ea1901cd94df05d649f6027e17303bd6d9",
+    "status": 1,
+    "blockNumber": 11984380,
+    "blockHash": "0x8bd34ca544cfb3d94a2b7458392407520bc2236a52804f6f2336698c4d360a33",
+    "from": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+    "contractAddress": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+    "gasUsed": "11773287",
+    "creationBytecodeMatchesPrepared": true
+  },
+  "standardInputSha256": "4ed1a1cd3375bec8b6a5231baa891777d0205b76214fa90855de1b379672f162"
+}

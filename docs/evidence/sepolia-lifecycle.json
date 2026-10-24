@@ -1,0 +1,217 @@
+{
+  "verified": true,
+  "chainId": "11155111",
+  "contractAddress": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+  "organizer": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+  "student": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+  "deploymentTransaction": "0xab973e92f52498745b6add116d73b5ea1901cd94df05d649f6027e17303bd6d9",
+  "scope": "One student claims a newly minted ticket, returns it to the organizer, and reclaims the same token. No transfer or admission transaction is part of this evidence.",
+  "tokenId": "1",
+  "remainingSequence": [
+    "49",
+    "50",
+    "49"
+  ],
+  "standardInputSha256": "4ed1a1cd3375bec8b6a5231baa891777d0205b76214fa90855de1b379672f162",
+  "initialSnapshot": {
+    "blockNumber": 11984383,
+    "blockHash": "0xa90ea96ecf0f9f24547accae1adcd5e9b05161315a8a69d0749be628f43be94a",
+    "blockTimestampUtc": "2026-10-24T14:29:48.000Z"
+  },
+  "initialState": {
+    "name": "Seminar Tickets",
+    "symbol": "SEAT",
+    "seatCap": "50",
+    "remaining": "50",
+    "totalMinted": "0",
+    "activeCount": "0",
+    "usedCount": "0",
+    "returnedInventoryCount": "0",
+    "isInitialState": true
+  },
+  "finalSnapshot": {
+    "blockNumber": 11984520,
+    "blockHash": "0xc30d0111e9d62a683423b7462ff21daf19dca97f928c95c07c310cb6a3ed750b",
+    "blockTimestampUtc": "2026-10-24T14:57:36.000Z"
+  },
+  "finalState": {
+    "name": "Seminar Tickets",
+    "symbol": "SEAT",
+    "seatCap": "50",
+    "remaining": "49",
+    "totalMinted": "1",
+    "activeCount": "1",
+    "usedCount": "0",
+    "returnedInventoryCount": "0",
+    "isInitialState": false
+  },
+  "checks": {
+    "sepolia": true,
+    "allReceiptsSuccessful": true,
+    "sameTargetContract": true,
+    "approvedStudentSender": true,
+    "zeroValue": true,
+    "expectedFunctionCalls": true,
+    "expectedBusinessEvents": true,
+    "erc721OwnershipChain": true,
+    "sameTokenReissued": true,
+    "historicalStateSnapshots": true,
+    "finalRuntimeAndOrganizerVerified": true
+  },
+  "transactions": [
+    {
+      "action": "claim",
+      "hash": "0x25c0d688a5e34c4332bc641a3f9a91430d7fc109f370892bf7820f7a53797175",
+      "chainId": "11155111",
+      "status": 1,
+      "from": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+      "to": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+      "valueWei": "0",
+      "blockNumber": 11984416,
+      "blockHash": "0xd4b82d09beea7324662e1db15eea82151c797490566b7a9c9082b05a1a701cbb",
+      "transactionIndex": 5,
+      "blockTimestampUtc": "2026-10-24T14:36:36.000Z",
+      "gasUsed": "699433",
+      "call": {
+        "signature": "claim()",
+        "args": []
+      },
+      "events": [
+        {
+          "name": "Transfer",
+          "logIndex": 16,
+          "args": {
+            "from": "0x0000000000000000000000000000000000000000",
+            "to": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "tokenId": "1"
+          }
+        },
+        {
+          "name": "TicketClaimed",
+          "logIndex": 17,
+          "args": {
+            "account": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "tokenId": "1",
+            "reused": false
+          }
+        }
+      ],
+      "stateAtReceiptBlock": {
+        "semantics": "State at the end of this receipt's block, read with an explicit blockTag.",
+        "remaining": "49",
+        "totalMinted": "1",
+        "activeCount": "1",
+        "usedCount": "0",
+        "tokenId": "1",
+        "owner": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+        "ticketState": "ACTIVE",
+        "studentActiveTicketOf": "1",
+        "studentHasEntered": false,
+        "studentEnteredTicketOf": "0"
+      }
+    },
+    {
+      "action": "return",
+      "hash": "0xf3937e97ac65e42508ab7b48c6ef64477b47a567963a7eca4f6eecb419d02fac",
+      "chainId": "11155111",
+      "status": 1,
+      "from": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+      "to": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+      "valueWei": "0",
+      "blockNumber": 11984447,
+      "blockHash": "0x669df4d6c9e94387be872aa1e74ae0fedf1c484870d36ec37a6e3d48833c5134",
+      "transactionIndex": 7,
+      "blockTimestampUtc": "2026-10-24T14:42:48.000Z",
+      "gasUsed": "370925",
+      "call": {
+        "signature": "returnTicket(uint256)",
+        "args": [
+          "1"
+        ]
+      },
+      "events": [
+        {
+          "name": "Transfer",
+          "logIndex": 37,
+          "args": {
+            "from": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "to": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+            "tokenId": "1"
+          }
+        },
+        {
+          "name": "TicketReturned",
+          "logIndex": 38,
+          "args": {
+            "account": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "tokenId": "1"
+          }
+        }
+      ],
+      "stateAtReceiptBlock": {
+        "semantics": "State at the end of this receipt's block, read with an explicit blockTag.",
+        "remaining": "50",
+        "totalMinted": "1",
+        "activeCount": "0",
+        "usedCount": "0",
+        "tokenId": "1",
+        "owner": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+        "ticketState": "AVAILABLE",
+        "studentActiveTicketOf": "0",
+        "studentHasEntered": false,
+        "studentEnteredTicketOf": "0"
+      }
+    },
+    {
+      "action": "reclaim",
+      "hash": "0x82e7900c5f5ea40b203d0b615091b8e16f0906d163663028b54f37a5e6717386",
+      "chainId": "11155111",
+      "status": 1,
+      "from": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+      "to": "0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3",
+      "valueWei": "0",
+      "blockNumber": 11984505,
+      "blockHash": "0xe4558cd9908b90a5678bd66392eef34f3df0b6f9ff32e80ceefbfce29d0d7b4c",
+      "transactionIndex": 26,
+      "blockTimestampUtc": "2026-10-24T14:54:36.000Z",
+      "gasUsed": "494089",
+      "call": {
+        "signature": "claim()",
+        "args": []
+      },
+      "events": [
+        {
+          "name": "Transfer",
+          "logIndex": 54,
+          "args": {
+            "from": "0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133",
+            "to": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "tokenId": "1"
+          }
+        },
+        {
+          "name": "TicketClaimed",
+          "logIndex": 55,
+          "args": {
+            "account": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+            "tokenId": "1",
+            "reused": true
+          }
+        }
+      ],
+      "stateAtReceiptBlock": {
+        "semantics": "State at the end of this receipt's block, read with an explicit blockTag.",
+        "remaining": "49",
+        "totalMinted": "1",
+        "activeCount": "1",
+        "usedCount": "0",
+        "tokenId": "1",
+        "owner": "0x03578111161a6FE000E844d3cBD2EA0F5108D7B9",
+        "ticketState": "ACTIVE",
+        "studentActiveTicketOf": "1",
+        "studentHasEntered": false,
+        "studentEnteredTicketOf": "0"
+      }
+    }
+  ]
+}
