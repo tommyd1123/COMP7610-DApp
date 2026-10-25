@@ -189,6 +189,11 @@ h2 {
   min-width: 260px;
 }
 
+.actions .btn[aria-busy="true"] {
+  background: #171717;
+  color: #fff;
+}
+
 .actions .text-link {
   display: inline-flex;
   align-items: center;
@@ -381,8 +386,65 @@ h2 {
   max-width: none;
 }
 
-.empty-pass {
-  margin-top: 28px;
+.ticket-empty {
+  min-height: calc(100vh - 220px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e6e6e6;
+  border-top-color: #111;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.spinner-sm {
+  width: 22px;
+  height: 22px;
+  border-width: 2px;
+}
+
+.spinner-on-dark {
+  border-color: rgba(255, 255, 255, 0.28);
+  border-top-color: #fff;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+    border-top-color: #111;
+  }
+
+  .spinner-on-dark {
+    border-top-color: #fff;
+  }
+}
+
+.empty-stack {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  max-width: 420px;
+  text-align: center;
+}
+
+.empty-stack .deck {
+  max-width: 360px;
+}
+
+.empty-stack .btn {
+  min-width: 220px;
+  margin-top: 8px;
 }
 
 .activity {

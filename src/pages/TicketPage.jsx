@@ -15,26 +15,44 @@ export function TicketPage() {
   const [fieldError, setFieldError] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(() => Boolean(session.account));
 
   useEffect(() => {
     if (!session.account) {
       setTicket(null);
+      setLoading(false);
       return undefined;
     }
     let ignore = false;
-    Promise.all([readTicketFor(session.account), readActivity(session.account)])
-      .then(([nextTicket, nextActivity]) => {
-        if (ignore) return;
-        setTicket(nextTicket);
-        setActivity(session.activity?.hash ? session.activity : nextActivity);
+    setLoading(true);
+    readTicketFor(session.account)
+      .then((nextTicket) => {
+        if (!ignore) setTicket(nextTicket);
       })
       .catch(() => {
         if (!ignore) setError("This ticket could not be read. Refresh and try again.");
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
       });
     return () => {
       ignore = true;
     };
-  }, [session.account, session.revision, session.activity]);
+  }, [session.account, session.revision]);
+
+  useEffect(() => {
+    if (!session.account) return undefined;
+    let ignore = false;
+    readActivity(session.account)
+      .then((nextActivity) => {
+        if (ignore || !nextActivity) return;
+        setActivity((current) => (current?.hash ? current : nextActivity));
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, [session.account, session.revision]);
 
   const number = ticketNumber(ticket?.tokenId);
   const active = Boolean(ticket?.active);
@@ -93,20 +111,49 @@ export function TicketPage() {
     }
   }
 
+  if (session.account && loading) {
+    return (
+      <section className="ticket-empty" aria-busy="true">
+        <div className="spinner" role="status" aria-label="Loading your ticket" />
+      </section>
+    );
+  }
+
+  if (!active && !keepsake) {
+    return (
+      <section className="ticket-empty">
+        <div className="empty-stack">
+          <h2>{session.account ? "Nothing to manage." : "Connect to see your ticket."}</h2>
+          <p className="deck">
+            {session.account
+              ? "This wallet does not hold an active or checked-in ticket."
+              : "A connected wallet can hold, transfer, or return one ticket."}
+          </p>
+          {session.account ? (
+            <a className="btn btn-dark" href="#claim">
+              Back to the event
+            </a>
+          ) : (
+            <button className="btn btn-dark" type="button" onClick={session.openWallet}>
+              Connect wallet
+            </button>
+          )}
+          {error && <p className="alert">{error}</p>}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="ticket-page">
       <div className="split">
         <div>
           <p className="kicker">02 / My ticket</p>
-          <h1>
-            {keepsake ? "A moment to keep." : active ? "Your seat, secured." : "No active ticket."}
-          </h1>
+          <h1>{keepsake ? "A moment to keep." : "Your seat, secured."}</h1>
           <p className="deck">
             {keepsake
               ? "You have checked in. Your NFT stays with you as a keepsake."
-              : active
-                ? "Keep it for yourself, pass it to a friend, or make room for someone else."
-                : "Claim a seat, or this wallet has already passed its ticket on."}
+              : "Keep it for yourself, pass it to a friend, or make room for someone else."}
           </p>
           {active || keepsake ? (
             <article className="pass">
@@ -131,19 +178,7 @@ export function TicketPage() {
                 <p>{keepsake ? "A keepsake of your visit." : "Valid until check-in."}</p>
               </div>
             </article>
-          ) : (
-            <div className="empty-pass">
-              {session.account ? (
-                <a className="btn btn-dark" href="#claim">
-                  Back to the event
-                </a>
-              ) : (
-                <button className="btn btn-dark" type="button" onClick={session.openWallet}>
-                  Connect wallet
-                </button>
-              )}
-            </div>
-          )}
+          ) : null}
         </div>
         <aside className="plans">
           {keepsake ? (
@@ -182,16 +217,7 @@ export function TicketPage() {
                 Returning makes one seat available again.
               </p>
             </>
-          ) : (
-            <>
-              <h2>{session.account ? "Nothing to manage." : "Connect to see your ticket."}</h2>
-              <p className="deck">
-                {session.account
-                  ? "This wallet does not hold an active or checked-in ticket."
-                  : "A connected wallet can hold, transfer, or return one ticket."}
-              </p>
-            </>
-          )}
+          ) : null}
           {error && <p className="alert">{error}</p>}
         </aside>
       </div>
