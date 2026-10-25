@@ -6,7 +6,7 @@ English summary: a five-person course project. The page must connect a wallet, c
 
 ## 故事
 
-这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数、转让、退票和入场核销。合约与完整 ABI 已实现，已部署到 Sepolia 并通过初始核验；网页已有三个占位页面：活动领票、我的门票、主办方检票。正式钱包、查询和页面内容仍待接入。
+这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数、转让、退票和入场核销。合约与完整 ABI 已实现，已部署到 Sepolia 并通过初始核验；网页的活动页和我的门票已接上英文界面与钱包连接。主办方检票下一步再单独提交。
 
 一个学生社团办一场免费讲座，一共 50 个座位。同学现在如果用表格报名，干部可以改名单，同一个人可以提交两次，别人只能看截图。
 
@@ -84,7 +84,7 @@ English summary: a five-person course project. The page must connect a wallet, c
 | `src/pages/ClaimPage.jsx` | 成员 4 | 现有领票页框架；新版活动与领票页 |
 | `src/pages/TicketPage.jsx` | 成员 4 | 我的门票、转让、退票和纪念票状态 |
 | `src/pages/DoorPage.jsx` | 成员 4 | 入场页框架；待按票号查询和核销 |
-| `src/App.jsx` | 成员 4 | 三个页面路由：`#claim`、`#ticket`、`#door`。钱包弹窗和页面内容仍待接入 |
+| `src/App.jsx` | 成员 4 | 三个页面路由：`#claim`、`#ticket`、`#door`，以及共用钱包弹窗 |
 | `docs/` | 全组读，成员 5 收报告 | 作业要求、老师给的代码、分工、报告草稿 |
 | `.env` | 每人自己本地有一份 | 不提交。从 `.env.example` 复制 |
 
@@ -109,7 +109,7 @@ npm run dev
 
 终端会打印本地地址，一般是 `http://localhost:5173`。用已经装好 MetaMask 的浏览器打开。打开页面前，在扩展里把网络选成 Sepolia。
 
-当前代码有三个占位页：顶部 Event（`#claim`）、My ticket（`#ticket`），页脚 Organizer access（`#door`）。页面里只有标题和一句「留给成员 4」。把上方已部署的合约地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`；填写地址不会自动补全尚未实现的页面与钱包功能。
+当前页面是英文界面：顶部 Event（`#claim`）、My ticket（`#ticket`），页脚 Organizer access（`#door`）。把上方已部署的合约地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`。
 
 其他命令：
 
@@ -137,7 +137,7 @@ npm run dev
 
 ## 还没做完的事
 
-- 三个页面已有空框架。钱包函数、只读查询和页面内容仍是空位，全局钱包弹窗尚未接入，按 `docs/02` 和 `docs/04` 分工实现。
+- 活动页和我的门票已接上钱包弹窗。主办方检票下一步单独提交。转让、核销仍需要对应钱包在 Sepolia 上联调。
 - 合约已实现领取、转让、退票复用和按票号核销，前端需要接入新 ABI；纪念票刷新查询使用 `enteredTicketOf(address)`，详见 `docs/03-转让退票与票务流程.md`。
 - 成员 2 的部署、领票 → 退票 → 重领及最终链上核验已完成；正式网页的转让、核销和完整演示还需联调。
 - 成员 2 的合约报告材料已补部署、三笔业务交易及最终状态证据；其他章节仍按 `docs/report/大纲.md` 汇总。
