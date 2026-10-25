@@ -1,7 +1,52 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top,
+.foot {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  margin: 0;
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.brand span {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.foot {
+  margin-top: auto;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.foot a {
+  color: var(--text-h);
+  text-decoration: none;
+}
+
+.foot a[aria-current="page"] {
+  text-decoration: underline;
+}
+
 .app {
   width: min(720px, 100%);
   margin: 0 auto;
-  padding: 32px 20px 64px;
+  padding: 8px 20px 64px;
   text-align: left;
   box-sizing: border-box;
 }
@@ -17,7 +62,7 @@
 .nav {
   display: flex;
   gap: 8px;
-  margin: 20px 0 24px;
+  margin: 0;
 }
 
 .nav a {

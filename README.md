@@ -6,7 +6,7 @@ English summary: a five-person course project. The page must connect a wallet, c
 
 ## 故事
 
-这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数、转让、退票和入场核销。合约与完整 ABI 已实现，已部署到 Sepolia 并通过初始核验；网页仍只有两个占位页面，新版设计安排三个业务页面。正式钱包、查询和页面功能仍待接入。
+这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数、转让、退票和入场核销。合约与完整 ABI 已实现，已部署到 Sepolia 并通过初始核验；网页已有三个占位页面：活动领票、我的门票、主办方检票。正式钱包、查询和页面内容仍待接入。
 
 一个学生社团办一场免费讲座，一共 50 个座位。同学现在如果用表格报名，干部可以改名单，同一个人可以提交两次，别人只能看截图。
 
@@ -51,7 +51,7 @@ English summary: a five-person course project. The page must connect a wallet, c
 
 ## 你现在只要做这三件事
 
-1. 按下面的命令把页面框架在自己电脑上打开，点顶部两个链接确认有领票页和入场页。
+1. 按下面的命令把页面框架在自己电脑上打开，点 Event、My ticket 和页脚 Organizer access，确认三个页面都能打开。
 2. 读 `docs/02-五人分工与报告.md`，看自己的目录。合约已实现，钱包、查询和页面仍由对应成员补全；合约本地验证和部署说明见 `contracts/README.md`。
 3. 组长把五个人的姓名填进分工表。
 
@@ -82,9 +82,9 @@ English summary: a five-person course project. The page must connect a wallet, c
 | `src/wallet/ethereum.js` | 成员 3 | 当前连接、领票、核销三个函数未实现；还需加转让和退票 |
 | `src/chain/read.js` | 成员 5 | 当前查询未实现；需接入有效票号、纪念票号、当前所有者、票状态、是否入场和剩余座位 |
 | `src/pages/ClaimPage.jsx` | 成员 4 | 现有领票页框架；新版活动与领票页 |
-| `src/pages/TicketPage.jsx`（待新建） | 成员 4 | 我的门票、转让、退票和纪念票状态 |
+| `src/pages/TicketPage.jsx` | 成员 4 | 我的门票、转让、退票和纪念票状态 |
 | `src/pages/DoorPage.jsx` | 成员 4 | 入场页框架；待按票号查询和核销 |
-| `src/App.jsx` | 成员 4 | 当前切换两个页面；待增加 `#ticket`，共享钱包状态与弹窗 |
+| `src/App.jsx` | 成员 4 | 三个页面路由：`#claim`、`#ticket`、`#door`。钱包弹窗和页面内容仍待接入 |
 | `docs/` | 全组读，成员 5 收报告 | 作业要求、老师给的代码、分工、报告草稿 |
 | `.env` | 每人自己本地有一份 | 不提交。从 `.env.example` 复制 |
 
@@ -109,7 +109,7 @@ npm run dev
 
 终端会打印本地地址，一般是 `http://localhost:5173`。用已经装好 MetaMask 的浏览器打开。打开页面前，在扩展里把网络选成 Sepolia。
 
-当前代码会显示顶部两个链接：Claim a seat 和 Door。页面里只有标题和一句「留给成员 4」；设计稿中的 My ticket 尚未接入代码。把上方已部署的合约地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`；填写地址不会自动补全尚未实现的页面与钱包功能。
+当前代码有三个占位页：顶部 Event（`#claim`）、My ticket（`#ticket`），页脚 Organizer access（`#door`）。页面里只有标题和一句「留给成员 4」。把上方已部署的合约地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`；填写地址不会自动补全尚未实现的页面与钱包功能。
 
 其他命令：
 
@@ -137,7 +137,7 @@ npm run dev
 
 ## 还没做完的事
 
-- 现有两个页面、钱包函数、只读查询仍是空位；新版还需新增我的门票页面与全局钱包弹窗，按 `docs/02` 和 `docs/04` 分工实现。
+- 三个页面已有空框架。钱包函数、只读查询和页面内容仍是空位，全局钱包弹窗尚未接入，按 `docs/02` 和 `docs/04` 分工实现。
 - 合约已实现领取、转让、退票复用和按票号核销，前端需要接入新 ABI；纪念票刷新查询使用 `enteredTicketOf(address)`，详见 `docs/03-转让退票与票务流程.md`。
 - 成员 2 的部署、领票 → 退票 → 重领及最终链上核验已完成；正式网页的转让、核销和完整演示还需联调。
 - 成员 2 的合约报告材料已补部署、三笔业务交易及最终状态证据；其他章节仍按 `docs/report/大纲.md` 汇总。
