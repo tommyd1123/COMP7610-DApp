@@ -8,6 +8,7 @@ export function ClaimPage() {
   const session = useSession();
   const [overview, setOverview] = useState(null);
   const [ticket, setTicket] = useState(null);
+  const [ticketFailed, setTicketFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,15 +29,18 @@ export function ClaimPage() {
   useEffect(() => {
     if (!session.account) {
       setTicket(null);
+      setTicketFailed(false);
       return undefined;
     }
     let ignore = false;
+    setTicket(null);
+    setTicketFailed(false);
     readTicketFor(session.account)
       .then((data) => {
         if (!ignore) setTicket(data);
       })
       .catch(() => {
-        if (!ignore) setTicket(null);
+        if (!ignore) setTicketFailed(true);
       });
     return () => {
       ignore = true;
@@ -46,6 +50,7 @@ export function ClaimPage() {
   const remaining = overview ? overview.remaining : null;
   const seatCap = overview ? overview.seatCap : 50n;
   const soldOut = remaining === 0n;
+  const ticketLoading = Boolean(session.account) && ticket === null && !ticketFailed;
   const hasActive = Boolean(ticket?.active);
   const checkedIn = Boolean(ticket?.entered && !ticket?.active);
 
@@ -71,7 +76,11 @@ export function ClaimPage() {
   let label = "Connect to claim a seat";
   let onClick = session.openWallet;
   let disabled = false;
-  if (session.account && hasActive) {
+  if (ticketLoading) {
+    label = "";
+    disabled = true;
+    onClick = undefined;
+  } else if (session.account && hasActive) {
     label = "View my ticket";
     onClick = () => {
       window.location.hash = "#ticket";
@@ -120,10 +129,14 @@ export function ClaimPage() {
             </div>
           </div>
           <div className="actions">
-            <button className="btn btn-dark" type="button" disabled={disabled} onClick={onClick}>
-              {label}
+            <button className="btn btn-dark" type="button" disabled={disabled} onClick={onClick} aria-busy={ticketLoading}>
+              {ticketLoading ? (
+                <span className="spinner spinner-sm spinner-on-dark" role="status" aria-label="Loading your ticket" />
+              ) : (
+                label
+              )}
             </button>
-            {!hasActive && (
+            {!ticketLoading && !hasActive && (
               <a className="text-link" href="#ticket">
                 View my ticket
               </a>
@@ -144,11 +157,15 @@ export function ClaimPage() {
           </div>
           <hr />
           <div className="available-row">
-            <p className="available">{remaining === null ? "—" : String(remaining)}</p>
+            {remaining === null ? (
+              <span className="spinner spinner-sm spinner-on-dark" role="status" aria-label="Loading seats" />
+            ) : (
+              <p className="available">{String(remaining)}</p>
+            )}
             <p className="invite-note">
               seats available
               <br />
-              {availableCopy}
+              {remaining === null ? "Claim while there is room." : availableCopy}
             </p>
           </div>
         </aside>
