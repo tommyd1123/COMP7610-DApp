@@ -5,15 +5,15 @@ import { shortAddress } from "./format.js";
 export function Status({ hintText, transactionId }) {
   return (
     <>
-      {hintText && <p className="status">Status: {hintText}</p>}
+      {hintText && <p className="fine" role="status">{hintText}</p>}
       {transactionId && (
         <a
-          className="tx"
+          className="text-link"
           href={`${SEPOLIA_EXPLORER_URL}/tx/${transactionId}`}
           target="_blank"
           rel="noreferrer"
         >
-          View transaction: {shortAddress(transactionId)}
+          View transaction on Etherscan: {shortAddress(transactionId)}
         </a>
       )}
     </>
