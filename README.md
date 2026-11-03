@@ -1,145 +1,241 @@
-# COMP7610 Final Project DApp
+# Seminar Ticket DApp
 
-English summary: a five-person course project. The page must connect a wallet, call a smart contract on the Sepolia testnet through ethers.js, and show one real transaction. Group work is due on 8 November 2026, 23:59. Start with the Chinese steps below.
+COMP7610 Introduction to Web3 and Blockchain — Final Project
 
-这是小组自己的仓库。老师的作业 PDF 和教学示例不在这里，说明见 `docs/00-这份作业是什么.md`。
+**English summary:** A ticketing DApp for a free campus seminar with 50 seats. Students connect MetaMask to claim, transfer or return an ERC-721 ticket on Sepolia. The organizer checks in the current holder once; the used NFT remains as a non-transferable souvenir. The project includes three React pages, ethers.js integration, a deployed Solidity contract, 43 recorded passing local checks, and a browser walkthrough of five successful transactions covering four operation types.
 
-## 故事
+## 项目介绍
 
-这是小组自己定的场景，不是作业 PDF 里的原文。老师示例只有「领取一张 NFT」。我们在这上面加了座位数、转让、退票和入场核销。合约与完整 ABI 已实现，已部署到 Sepolia 并通过初始核验；三个英文页面都已接上已部署的合约。转让和核销仍需在网页上联调。
+本项目以免费校园讲座为场景，在教学示例的 NFT 领取流程上增加座位容量、门票转让、退票复用和一次性入场核销。前端通过 ethers.js 读取链上状态，由 MetaMask 签署交易，合约统一执行资格、容量与权限规则。
 
-一个学生社团办一场免费讲座，一共 50 个座位。同学现在如果用表格报名，干部可以改名单，同一个人可以提交两次，别人只能看截图。
+正式应用包含 Event、My ticket 和 Organizer check-in 三个页面，已接入 Sepolia 上部署的合约。领取、转让、核销和退票的浏览器操作已完成，交易记录见下文。连接钱包、转让和退票通过弹窗完成；纪念票是 My ticket 的一种状态，不是第四个页面。
 
-故事包含四个操作，分别放在活动、我的门票、主办方三个页面里：
+## 已实现功能
 
-1. **领票**（`#claim`）。同学连接钱包，有空位、当前没有有效票、这个地址未入场，才能领取。剩余座位减一，每个地址最多持有一张有效票。
-2. **转让**（`#ticket` 的「我的门票」）。持有人把未核销票转给另一同学，入场资格跟着 NFT 转移，剩余座位不变。转出后可以重新领取。
-3. **退票**（同一「我的门票」页面）。持有人把未核销 NFT 交回主办方，也就是部署者钱包，取消入场资格，剩余座位加一。下一次领取优先复用这张退回票；原持有人也可以重新领取。票免费，没有退款。
-4. **入场**（`#door`）。部署者钱包是主办方，按票号核销当前持有人。已核销 NFT 留在同学钱包作纪念，但不能再转让、退票或重复核销，已入场地址也不能再次领取或接收票。
-
-四个业务操作会产生可在 Etherscan 核对的交易。部署与 Account 1 领取 → 退票 → 同票号重领验收已完成；转让、核销仍需小组网页联调演示。一个人换一个钱包再领一张，这版挡不住。票上没有图片。
-
-> Students claim a free seminar ticket, transfer it to another student, or return it to the organizer so the seat can be claimed again. The organizer checks in the current ticket holder once.
-
-完整规则、已实现的合约接口和验收步骤见 [`docs/03-转让退票与票务流程.md`](docs/03-转让退票与票务流程.md)。合约位于 `contracts/SeminarTickets.sol`；`src/config/contract.js` 导入编译生成的完整 ABI。成员 3、5 按新接口补充交易与查询，成员 4 接入页面。
-
-页面数量、钱包弹窗、按钮跳转和界面状态见 [`docs/04-页面与交互设计.md`](docs/04-页面与交互设计.md)。
-
-成员 2 的部署步骤、验收与接口交接见 [`docs/05-成员2部署与交接.md`](docs/05-成员2部署与交接.md)；英文 Design / Implementation 材料已写入 [`docs/report/成员2-合约设计与实现.md`](docs/report/成员2-合约设计与实现.md)。2026-10-24 本地验证：32 项合约、8 项部署工具和 3 项辅助页测试，共 **43 项全部通过**。
-
-## Sepolia 部署记录
-
-- 合约：[0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3](https://sepolia.etherscan.io/address/0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3)
-- 主办方：`0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133`，已与 `organizer()` 核对。
-- [部署交易](https://sepolia.etherscan.io/tx/0xab973e92f52498745b6add116d73b5ea1901cd94df05d649f6027e17303bd6d9)：区块 `11984380`，回执成功。
-- 实际通过本地部署辅助页与 MetaMask 部署；固定区块 `11984383` 核验通过，运行时代码、创建字节码、元数据均匹配，初始余票 50、已铸造 0。Account 1 三笔业务交易均成功，票号 1 被复用，余票 49 → 50 → 49；[完整证据](docs/evidence/sepolia-lifecycle.json)与[最终核验](docs/evidence/sepolia-final.json)已保存。
-
-## 设计与原型演示
-
-[Figma 黑白灰设计稿](https://www.figma.com/design/heOrdlDjJbrbyY5WagefQH/COMP7610-%C2%B7-Seminar-Tickets-%C2%B7-Monochrome?node-id=0-1&t=IKL0Dn3s5v6NEcxV-1)
-
-设计包含三个页面：活动领票、我的门票、主办方检票。连接钱包使用共用弹窗；转让和退票在「我的门票」里完成。完整闭环是连接钱包 → 领票 → 持有、转让或退票 → 主办方检票 → 保留已核销纪念 NFT。退票释放名额，原票可再次领取。
-
-- [62 秒原型操作录屏](docs/demo/DAPP-原型操作演示.mp4)
-- 核心截图：[活动领票](docs/demo/01-活动领票.png)、[我的门票](docs/demo/02-我的门票.png)、[主办方检票](docs/demo/03-主办方检票.png)
-- [已核销纪念票状态](docs/demo/04-已核销纪念票.png)（属于「我的门票」，不是第四个页面）
-- [发给组员的精简说明](docs/demo/发给组员的说明.txt)
-
-![三个核心页面总览](docs/demo/三个核心页面总览.png)
-
-截图和录屏展示 Figma 原型的模拟交互，数值和地址是演示数据；它们不是运行中的 DApp。合约已部署 Sepolia；本地部署辅助页用于成员 2 验收，正式前端仍待实现。
-
-## 你现在只要做这三件事
-
-1. 按下面的命令把页面框架在自己电脑上打开，点 Event、My ticket 和页脚 Organizer access，确认三个页面都能打开。
-2. 读 `docs/02-五人分工与报告.md`，看自己的目录。合约已实现，钱包、查询和页面仍由对应成员补全；合约本地验证和部署说明见 `contracts/README.md`。
-3. 组长把五个人的姓名填进分工表。
-
-## 技术栈
-
-| 层 | 选用 | 版本 |
+| 操作 | 页面 | 规则与结果 |
 | --- | --- | --- |
-| 运行环境 | Node.js | 20.19 或更高，或者 22.12 或更高。本次本地验证使用 22.23.2 |
-| 包管理 | npm | 随 Node 自带 |
-| 前端 | React | 19.2 |
-| 构建 | Vite | 8.3 |
-| 连链 | ethers | 6.17 |
-| 合约 | Solidity | 0.8.30。库用 OpenZeppelin Contracts 5.6.1，和老师示例一致 |
-| 合约本地验证 | solc + Hardhat 2 | solc 0.8.30 编译；Hardhat 只提供本地测试网络 |
-| 部署合约 | 本地部署辅助页 + MetaMask | 本次实际方式；optimizer 200、EVM Cancun，Remix 步骤保留作备用 |
-| 钱包 | MetaMask | 浏览器扩展，小组已经安装 |
-| 网络 | Sepolia | 链 ID `11155111`（十六进制 `0xaa36a7`） |
-| 核对交易 | Etherscan | <https://sepolia.etherscan.io> |
+| 领取 | Event · `#claim` | 有剩余座位、没有有效票且尚未入场的合资格地址可以领取；优先复用退回的 NFT，否则铸造新票。 |
+| 转让 | My ticket · `#ticket` | 当前持有人可将未核销票转给另一合资格地址；票号不变，入场资格随所有权转移，余票不变。转出者未入场时可以再次领票。 |
+| 退票 | My ticket · `#ticket` | 未核销票退回组织者库存，释放一个名额，后续领取可复用该票号。门票免费，没有 ETH 退款。 |
+| 核销 | Organizer check-in · `#door` | 只有部署者钱包可按票号核销当前持有人；核销后保留纪念 NFT，禁止转让、退票和重复核销。 |
 
-前端框架老师允许 React、Vue 或纯 JS。本仓库已经是 React，小组沿用即可。
+每个地址最多持有一张有效票；已入场地址不能再次领取或接收门票。组织者地址负责库存和核销，不参与学生领票。退回票按后进先出顺序复用。
 
-## 目录
+容量始终满足：
 
-| 路径 | 谁改 | 里面是什么 |
-| --- | --- | --- |
-| `contracts/` | 成员 2 | `SeminarTickets.sol`：领取、转让、退票复用、核销及只读接口；已部署 Sepolia |
-| `src/config/contract.js` | 成员 1、2 | 合约地址、座位上限 50、链 ID；导入 `SeminarTickets.abi.json` 的完整 ABI |
-| `src/wallet/ethereum.js` | 成员 3 | 当前连接、领票、核销三个函数未实现；还需加转让和退票 |
-| `src/chain/read.js` | 成员 5 | 当前查询未实现；需接入有效票号、纪念票号、当前所有者、票状态、是否入场和剩余座位 |
-| `src/pages/ClaimPage.jsx` | 成员 4 | 现有领票页框架；新版活动与领票页 |
-| `src/pages/TicketPage.jsx` | 成员 4 | 我的门票、转让、退票和纪念票状态 |
-| `src/pages/DoorPage.jsx` | 成员 4 | 入场页框架；待按票号查询和核销 |
-| `src/App.jsx` | 成员 4 | 三个页面路由：`#claim`、`#ticket`、`#door`，以及共用钱包弹窗 |
-| `docs/` | 全组读，成员 5 收报告 | 作业要求、老师给的代码、分工、报告草稿 |
-| `.env` | 每人自己本地有一份 | 不提交。从 `.env.example` 复制 |
+```text
+remaining + activeCount + usedCount = 50
+```
 
-## 可选辅助网页（部署与测试示例）
+核销将有效票转为已使用票，不重新开放座位。标准 ERC-721 转账入口同样执行业务规则；接收合约回调前完成状态更新，并对相关入口提供重入保护。
 
-`scripts/deployment-preview/` 是成员 2 为部署和验收编写的本地辅助网页，由 `scripts/deployment-preview.mjs` 启动。它演示 MetaMask 连接、部署、领取、退票和重新领取，并展示交易记录；本次已用它完成 Sepolia 部署与验收。
+## 快速启动
 
-**该工具不属于正式前端交接范围，也不代表成员 3、4、5 的页面、钱包和查询任务已经完成。** 正式 DApp 在 `src/` 中开发。组员接入时使用已部署的合约地址、完整 ABI 和交接文档即可，无需运行辅助页或重新部署合约；可以参考其中的调用代码。
+### 环境准备
 
-需要查看辅助页时运行 `npm run preview:deployment`，再用装有 MetaMask 的浏览器打开 `http://127.0.0.1:4174`。工具目前限定本次验收的 Account 2 和 Account 1，写操作会通过钱包提交真实的 Sepolia 测试网交易，并非模拟数据。关闭辅助页或终端不影响已部署的合约。
+- Node.js：建议使用项目记录的验证版本 **22.23.2**，并使用随附的 npm。
+- 安装 MetaMask 的浏览器，钱包网络选择 **Sepolia**。
+- 执行写操作的钱包需要少量 Sepolia 测试 ETH 支付 gas；门票本身免费。
 
-## 在自己电脑上打开页面
-
-在仓库根目录执行：
+在项目根目录执行：
 
 ```bash
 node -v
-npm install
+npm ci
+```
+
+复制环境变量示例。在 Windows PowerShell 中执行：
+
+```powershell
+Copy-Item .env.example .env
+```
+
+在 macOS / Linux 中执行：
+
+```bash
 cp .env.example .env
+```
+
+**先编辑 `.env`，将占位地址替换为以下内容，再启动应用：**
+
+```dotenv
+VITE_CONTRACT_ADDRESS=0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3
+```
+
+```bash
 npm run dev
 ```
 
-终端会打印本地地址，一般是 `http://localhost:5173`。用已经装好 MetaMask 的浏览器打开。打开页面前，在扩展里把网络选成 Sepolia。
+打开终端显示的地址，通常是 `http://localhost:5173`。顶部可进入 Event 和 My ticket，页脚 Organizer access 可进入核销页面。修改 `.env` 后需要重启 Vite。
 
-当前页面是英文界面：顶部 Event（`#claim`）、My ticket（`#ticket`），页脚 Organizer access（`#door`）。把上方已部署的合约地址写进 `.env` 的 `VITE_CONTRACT_ADDRESS`，然后停掉 `npm run dev` 再开一次。Vite 只在启动时读取 `.env`。
+使用现有合约运行正式 DApp **无需重新部署，也无需启动部署辅助工具**。普通钱包可以体验学生功能，只有下文列出的组织者钱包可以确认核销。
 
-其他命令：
+### 常用命令
 
-| 命令 | 作用 |
+| 命令 | 用途 |
 | --- | --- |
-| `npm run dev` | 本地开发，改代码会自动刷新 |
-| `npm run build` | 生成 `dist/`，这是打包结果，不要提交 |
-| `npm run preview` | 本地查看打包结果 |
-| `npm run lint` | 跑 Oxlint |
-| `npm run compile:contract` | 编译合约并更新前端完整 ABI；不部署到测试网 |
-| `npm run test:contract` | 在本地网络验证合约规则；不需要 MetaMask 或测试网 ETH |
-| `npm run prepare:deployment` | 生成自包含标准编译输入、ABI、部署字节码及校验清单；不发送交易 |
-| `npm run verify:deployment -- --help` | 查看 Sepolia 部署只读验收参数；核对代码、主办方和票务状态 |
-| `npm run test:deployment` | 在本地网络验证部署工具的匹配及拒绝错误输入行为 |
-| `npm run preview:deployment` | 打开本地 MetaMask 部署与领票 / 退票验收工具，默认 `http://127.0.0.1:4174` |
-| `npm run test:deployment-preview` | 验证辅助页的账户、网络及重复发送保护 |
+| `npm run dev` | 启动正式 DApp 开发服务器。 |
+| `npm run build` | 生成生产构建 `dist/`。 |
+| `npm run preview` | 预览已经生成的生产构建。 |
+| `npm run lint` | 使用 Oxlint 检查源码。 |
+| `npm run compile:contract` | 编译 Solidity，生成合约产物并更新前端 ABI；不部署。 |
+| `npm run test:contract` | 运行本地合约测试。 |
+| `npm run test:deployment` | 运行部署准备与验证工具测试。 |
+| `npm run test:deployment-preview` | 运行部署辅助工具测试。 |
+| `npm run prepare:deployment` | 生成标准编译输入、ABI、部署字节码与校验清单；不发送交易。 |
+| `npm run verify:deployment -- --help` | 查看部署只读核验工具的参数。 |
+| `npm run preview:deployment` | 启动可选的部署与验收辅助工具。 |
 
-## 合约地址怎么来
+## 技术栈与实现
 
-1. 本次已用本地辅助页与 MetaMask 部署。成员接入时直接使用上方公开地址；重新部署步骤及 Remix 备用方式见 [`docs/05`](docs/05-成员2部署与交接.md)。
-2. 复制部署出来的合约地址，不是自己的钱包地址，也不是交易哈希。
-3. 写进本地 `.env`。这个地址可以公开，写进 README。私钥和助记词不能写进仓库、`.env` 或视频。
+版本以本次提交的 `package-lock.json` 为准。
 
-老师示例的逐步截图式说明在他的仓库里：<https://github.com/jzjzzzzzzz/nft-ticket-dapp>。
+| 层 | 技术与版本 |
+| --- | --- |
+| 前端 | React / React DOM 19.3.0 |
+| 构建 | Vite 8.3.0 |
+| 区块链接入 | ethers 6.17.0 |
+| 合约 | Solidity / solc 0.8.30；OpenZeppelin Contracts 5.6.1 |
+| 本地验证 | Hardhat 2.28.6 提供本地网络；Node.js `node:test` 运行测试 |
+| 编译配置 | Optimizer 开启，200 runs；EVM Cancun |
+| 钱包与网络 | MetaMask；Sepolia，链 ID `11155111`（`0xaa36a7`） |
 
-## 还没做完的事
+只读查询使用 `JsonRpcProvider` 和公共 Sepolia RPC，不需要钱包签名；写操作使用 `BrowserProvider` 获取 signer，经过 MetaMask 确认后提交。钱包模块等待交易回执后返回交易哈希。
 
-- 三个页面已接上钱包和已部署合约。转让、核销仍需要在 Sepolia 上用正式网页联调。
-- 合约已实现领取、转让、退票复用和按票号核销，前端需要接入新 ABI；纪念票刷新查询使用 `enteredTicketOf(address)`，详见 `docs/03-转让退票与票务流程.md`。
-- 成员 2 的部署、领票 → 退票 → 重领及最终链上核验已完成；正式网页的转让、核销和完整演示还需联调。
-- 成员 2 的合约报告材料已补部署、三笔业务交易及最终状态证据；其他章节仍按 `docs/report/大纲.md` 汇总。
+前端提供错误网络、拒绝签名、重复领票和非组织者核销提示。组织者页面保留成功核销的哈希与 Etherscan 链接；如果后续状态查询失败，仍保留成功结果并提示重新查询。
 
-终稿截止：2026-11-08 23:59。小组交视频、报告 PDF 和本仓库。每个人另外交 Peer assignment，具体入口和题目以 Moodle 为准。
+| 路径 | 内容 |
+| --- | --- |
+| `contracts/SeminarTickets.sol` | 领取、转让、退票复用、核销、容量和资格规则。 |
+| `src/config/contract.js` | 环境变量合约地址、链 ID、ABI 和浏览器链接配置。 |
+| `src/config/SeminarTickets.abi.json` | 编译生成的完整 ABI，包含事件和自定义错误。 |
+| `src/wallet/ethereum.js` | 钱包连接、网络切换及四类业务交易。 |
+| `src/chain/read.js` | 容量、有效票、纪念票、所有者、状态及活动记录查询。 |
+| `src/pages/ClaimPage.jsx` | 活动信息、余票和领票入口。 |
+| `src/pages/TicketPage.jsx` | 当前门票、转让、退票和已核销纪念票。 |
+| `src/pages/DoorPage.jsx` | 按票号查询、组织者核销和成功交易链接。 |
+| `src/ui/` | 共用会话、状态提示、地址格式和错误消息。 |
+| `src/App.jsx` | 三个页面的 hash 路由和共用钱包弹窗。 |
+| `test/` | 合约、部署工具及部署辅助工具测试。 |
+| `scripts/` | 编译、部署准备、只读核验及辅助工具。 |
+| `docs/evidence/` | 早期部署及 #1 领取、退票、重领的链上记录。 |
+| `docs/demo/` | 早期设计原型截图与模拟操作录屏。 |
+
+## 测试结果
+
+项目记录的 2026-10-24 本地验证共 **43 项通过**。合约用例包含按不同 ERC-721 入口展开的参数化测试。
+
+| 测试套件 | 通过数量 | 主要覆盖 |
+| --- | ---: | --- |
+| `test/SeminarTickets.test.mjs` | 32 | 容量、退票复用、权限、标准转账、接收合约回调、重入及失败回滚。 |
+| `test/DeploymentTools.test.mjs` | 8 | 编译与部署产物、代码和状态匹配、错误输入拒绝。 |
+| `test/DeploymentPreview.test.mjs` | 3 | 账户和网络限制、重复发送保护、本地 HTTP 服务限制。 |
+| **合计** | **43** | |
+
+可分别复现：
+
+```bash
+npm run test:contract
+npm run test:deployment
+npm run test:deployment-preview
+npm run build
+npm run lint
+```
+
+上述本地测试不需要 MetaMask 或 Sepolia ETH。既有报告记录生产构建成功，lint 无错误、存在三条 React 警告，构建提示 JavaScript chunk 大于 500 kB。自动化验证与下述浏览器操作记录分别覆盖合约规则和实际用户流程。
+
+## Sepolia 部署与操作记录
+
+### 部署
+
+- 合约：[0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3](https://sepolia.etherscan.io/address/0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3)
+- 组织者：`0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133`
+- [部署交易](https://sepolia.etherscan.io/tx/0xab973e92f52498745b6add116d73b5ea1901cd94df05d649f6027e17303bd6d9)：区块 `11984380`，回执成功。
+- 部署方式：本地部署辅助工具与 MetaMask。
+- [初始核验](docs/evidence/sepolia-initial.json)：固定区块 `11984383`，初始余票 50，已铸造 0。
+- [早期生命周期最终核验](docs/evidence/sepolia-final.json)：固定区块 `11984520`，核对运行时代码、创建字节码、元数据、组织者和状态。该记录是早期快照，不是当前实时状态。
+
+固定区块字节码核验与 Etherscan 公开源码验证是不同事项。
+
+### 退票后复用同一 NFT
+
+[完整生命周期记录](docs/evidence/sepolia-lifecycle.json)记录了早期测试钱包对 #1 的三笔成功交易。
+
+| 操作 | 票号 | 剩余座位 | 已铸造数量 | 交易 |
+| --- | --- | ---: | ---: | --- |
+| 领取 | #1 | 49 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0x25c0d688a5e34c4332bc641a3f9a91430d7fc109f370892bf7820f7a53797175) |
+| 退回 | #1 | 50 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0xf3937e97ac65e42508ab7b48c6ef64477b47a567963a7eca4f6eecb419d02fac) |
+| 再次领取 | #1 | 49 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0x82e7900c5f5ea40b203d0b615091b8e16f0906d163663028b54f37a5e6717386) |
+
+### 正式前端浏览器操作
+
+操作记录由 Wang Yukai 提供，使用以下钱包；Student A / B 是测试角色，不代表成员身份。
+
+| 角色 | 地址 |
+| --- | --- |
+| Student A | `0xC9C2bE877D01Dc7a58bf3768c7da29E60f882bfd` |
+| Student B | `0xD7C38095FB3967Ca44A70AF423B82Eb31a0ce9Be` |
+| Organizer | `0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133` |
+
+五笔成功交易覆盖领取、转让、核销、退票四类操作。对应前端与 Etherscan 截图见小组报告的附录 B。
+
+| 顺序 | 操作 | 记录结果 | 区块 | 交易 |
+| --- | --- | --- | --- | --- |
+| 1 | A 领取 #3 | #3 从组织者库存重新发放给 A，并非新铸造。 | 12020310 | [Etherscan](https://sepolia.etherscan.io/tx/0x17664386a55ae84c48df826538dc8e320672477d016b6224ebb49e83c62b144f) |
+| 2 | A 将 #3 转给 B | 票号不变；B 的页面显示有效票。 | 12020322 | [Etherscan](https://sepolia.etherscan.io/tx/0xc9b4eb09c4410757e838cc15c4116124d958cbc03f8bc7de8a946f2fcb1c905e) |
+| 3 | Organizer 核销 #3 | B 保留纪念 NFT，转让与退票按钮禁用。 | 12020333 | [Etherscan](https://sepolia.etherscan.io/tx/0x82b90e47aa75d7ce545a5c2f2269310aebe5e5ec56816a9f31dd71c7131647ee) |
+| 4 | A 领取 #4 | 新票从零地址铸造给 A。 | 12020349 | [Etherscan](https://sepolia.etherscan.io/tx/0x09832ef69fb01a7cba0fb1d618bf63abdf368a074241798c8a932139148f46a6) |
+| 5 | A 退回 #4 | NFT 回到组织者库存。 | 12020353 | [Etherscan](https://sepolia.etherscan.io/tx/0x88a8ea30f3e430c9e436226b3c05c5ec984809071c4eaae7bb010d56ee782ec0) |
+
+#3 已经核销，不能用于退票，因此另领 #4 演示退票。上述 #3/#4 记录与早期 #1 生命周期是两个独立测试阶段。
+
+## 设计原型与部署辅助工具
+
+### 早期界面设计
+
+- [Figma 设计稿](https://www.figma.com/design/heOrdlDjJbrbyY5WagefQH/COMP7610-%C2%B7-Seminar-Tickets-%C2%B7-Monochrome?node-id=0-1&t=IKL0Dn3s5v6NEcxV-1)
+- [原型操作录屏](docs/demo/DAPP-原型操作演示.mp4)
+- [活动领票](docs/demo/01-活动领票.png)、[我的门票](docs/demo/02-我的门票.png)、[主办方检票](docs/demo/03-主办方检票.png)、[纪念票状态](docs/demo/04-已核销纪念票.png)
+
+![早期三个核心页面设计](docs/demo/三个核心页面总览.png)
+
+`docs/demo/` 中的图片和视频展示早期 Figma 模拟交互，数值和地址是演示数据，不作为真实链上操作证据。正式 DApp 位于 `src/`，浏览器交易记录列于上一节。
+
+### 可选部署辅助工具
+
+`scripts/deployment-preview/` 用于部署及领取、退票、重领验收，通过 `npm run preview:deployment` 启动，默认地址为 `http://127.0.0.1:4174`。它与 `npm run dev` 启动的正式应用分开。
+
+该工具保留本次验收指定账户的限制，不是供任意钱包体验的通用页面。其写操作通过 MetaMask 提交 Sepolia 交易。一般运行与评审直接使用正式 DApp 即可。
+
+部署细节见 [部署与交接文档](docs/05-成员2部署与交接.md)。
+
+## 已知限制
+
+- 限制按地址生效，无法阻止同一个人使用多个钱包；线下身份与实际到场仍由组织者核验。
+- 组织者地址和 50 座容量固定，没有紧急暂停、组织者轮换、整场活动取消或合约升级机制。
+- 活动日期和地点由前端展示；合约没有按活动时间自动关闭领取或核销的逻辑。
+- 前端依赖钱包和公共 RPC 的可用性。只读查询使用固定 Sepolia RPC，事件扫描起点与本次部署对应。
+- 不包含 NFT 图片和逐票元数据。核销后的纪念 NFT 表示链上状态，不保证钱包展示收藏品图片。
+- 转让和退票后，原持有人可能进入无票页面；交易结果仍可通过上面的 Etherscan 记录核对。
+
+## 小组贡献
+
+所有成员共同讨论背景、场景、规则和用户流程，以下是主要职责。
+
+| 成员 | UID | 主要贡献 |
+| --- | --- | --- |
+| Dong Yiyang | 3036842698 | 合约生命周期、资格和容量规则、ABI、本地测试、部署工具、Sepolia 部署和核验记录。 |
+| Lu Shijie | 3036841228 | 三个正式页面、共用钱包和会话集成、链上读写接入、加载及空状态。 |
+| Wang Yukai | 3033113371 | 测试钱包准备、领取/转让/核销/退票操作、交易核对、操作 Word 和截图。 |
+| Zhang Yidan | 3036841668 | 核销成功链接、拒绝签名/错误网络/重复领票/非授权核销等界面反馈。 |
+| Zhang Ke | 3036866280 | 整理背景与流程、汇总实现和测试材料、报告协调、分工及参考资料和交易证据整理。 |
+
+## 相关资料
+
+- [合约说明](contracts/README.md)
+- [票务流程设计](docs/03-转让退票与票务流程.md)
+- [页面与交互设计](docs/04-页面与交互设计.md)
+- [合约设计与实现材料](docs/report/成员2-合约设计与实现.md)
+- [课程教学示例](https://github.com/jzjzzzzzzz/nft-ticket-dapp)
+
+`docs/` 中保留部分早期设计和任务分配记录，其中的“待实现”描述属于当时的开发阶段。当前功能状态以本 README、提交源码和小组最终报告为准。
