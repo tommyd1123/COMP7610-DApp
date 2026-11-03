@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { readOverview, readTicket } from "../chain/read.js";
-import { explainError, shortAddress, ticketNumber } from "../ui/format.js";
+import { explainError, shortAddress, ticketNumber, WRONG_NETWORK_MESSAGE } from "../ui/format.js";
 import { useSession } from "../ui/session.jsx";
+import { Status } from "../ui/Status.jsx";
 import { admitStudent } from "../wallet/ethereum.js";
 
 const STATE_LABEL = {
@@ -17,6 +18,7 @@ export function DoorPage() {
   const [result, setResult] = useState(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [transaction, setTransaction] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -40,6 +42,7 @@ export function DoorPage() {
   async function lookUp(event) {
     event.preventDefault();
     setError("");
+    setTransaction(null);
     const tokenId = BigInt(query.trim() || "0");
     if (tokenId <= 0n) {
       setResult(null);
@@ -60,22 +63,30 @@ export function DoorPage() {
   }
 
   async function checkIn() {
-    if (!result) return;
+    if (!result || busy || !isOrganizer) return;
     setBusy(true);
     setError("");
+    let confirmed = false;
     try {
+      await session.requireSepolia();
       const hash = await admitStudent(result.tokenId);
+      confirmed = true;
+      setTransaction({ hash, tokenId: result.tokenId });
       session.noteActivity({ hash, tokenId: result.tokenId, kind: "checked in" });
       const next = await readTicket(result.tokenId);
-      setResult(next);
+      if (next) setResult(next);
+      else setError("Check-in succeeded, but the updated ticket could not be read. Look up the ticket again.");
     } catch (err) {
-      setError(explainError(err));
+      setError(confirmed
+        ? "Check-in succeeded, but the updated ticket could not be read. Look up the ticket again."
+        : explainError(err));
     } finally {
       setBusy(false);
     }
   }
 
-  const canCheckIn = Boolean(isOrganizer && result?.state === 1 && !busy);
+  const canCheckIn = Boolean(isOrganizer && result?.state === 1 && !busy && !session.wrongNetwork && !transaction);
+  const notice = error || (session.wrongNetwork ? WRONG_NETWORK_MESSAGE : "");
 
   return (
     <section className="door">
@@ -109,7 +120,9 @@ export function DoorPage() {
             {busy ? "Looking up..." : "Look up ticket"}
           </button>
           <p className="fine">Only the deploying organizer wallet can confirm check-in.</p>
-          {session.account && !isOrganizer && <p className="alert">Organizer wallet required.</p>}
+          {session.account && overview && !isOrganizer && (
+            <p className="alert" role="alert">Organizer wallet required. Connect the wallet that deployed this contract to check in tickets.</p>
+          )}
           {!session.account && (
             <button className="btn btn-light" type="button" onClick={session.openWallet}>
               Connect wallet
@@ -144,7 +157,13 @@ export function DoorPage() {
               <p className="deck">The holder and status appear here after a lookup.</p>
             </>
           )}
-          {error && <p className="alert">{error}</p>}
+          {transaction && (
+            <Status
+              hintText={`Ticket #${ticketNumber(transaction.tokenId)} checked in successfully.`}
+              transactionId={transaction.hash}
+            />
+          )}
+          {notice && <p className="alert" role="alert">{notice}</p>}
         </article>
       </div>
     </section>

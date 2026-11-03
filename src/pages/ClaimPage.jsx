@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { readOverview, readTicketFor } from "../chain/read.js";
 import { useSession } from "../ui/session.jsx";
-import { explainError } from "../ui/format.js";
+import { explainError, WRONG_NETWORK_MESSAGE } from "../ui/format.js";
 import { claimTicket } from "../wallet/ethereum.js";
 
 export function ClaimPage() {
@@ -53,11 +53,13 @@ export function ClaimPage() {
   const ticketLoading = Boolean(session.account) && ticket === null && !ticketFailed;
   const hasActive = Boolean(ticket?.active);
   const checkedIn = Boolean(ticket?.entered && !ticket?.active);
+  const notice = error || (session.wrongNetwork ? WRONG_NETWORK_MESSAGE : "");
 
   async function claim() {
     setBusy(true);
     setError("");
     try {
+      await session.requireSepolia();
       const hash = await claimTicket();
       const next = await readTicketFor(session.account);
       session.noteActivity({
@@ -95,7 +97,7 @@ export function ClaimPage() {
     onClick = undefined;
   } else if (session.account) {
     label = busy ? "Waiting for the wallet..." : "Claim a free seat";
-    disabled = busy;
+    disabled = busy || session.wrongNetwork;
     onClick = claim;
   }
 
@@ -143,10 +145,13 @@ export function ClaimPage() {
             )}
           </div>
           <p className="fine">Free admission · Testnet gas applies</p>
+          {hasActive && (
+            <p className="fine" role="status">This wallet already holds an active ticket. View your ticket to manage it.</p>
+          )}
           {checkedIn && (
             <p className="fine">This wallet has already been checked in and cannot claim again.</p>
           )}
-          {error && <p className="alert">{error}</p>}
+          {notice && <p className="alert" role="alert">{notice}</p>}
         </div>
         <aside className="invite">
           <p className="kicker on-dark">An open invitation</p>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { isAddress } from "ethers";
 import { CONTRACT_ADDRESS, SEPOLIA_EXPLORER_URL } from "../config/contract.js";
 import { readActivity, readTicketFor } from "../chain/read.js";
-import { explainError, shortAddress, ticketNumber } from "../ui/format.js";
+import { explainError, shortAddress, ticketNumber, WRONG_NETWORK_MESSAGE } from "../ui/format.js";
 import { useSession } from "../ui/session.jsx";
 import { returnTicket, transferTicket } from "../wallet/ethereum.js";
 
@@ -57,11 +57,19 @@ export function TicketPage() {
   const number = ticketNumber(ticket?.tokenId);
   const active = Boolean(ticket?.active);
   const keepsake = Boolean(ticket?.entered && !ticket?.active);
+  const notice = error || (session.wrongNetwork ? WRONG_NETWORK_MESSAGE : "");
+
+  function openDialog(kind) {
+    setError("");
+    setFieldError("");
+    setDialog(kind);
+  }
 
   function closeDialog() {
     if (busy) return;
     setDialog("");
     setFieldError("");
+    setError("");
   }
 
   function recipientProblem() {
@@ -86,6 +94,7 @@ export function TicketPage() {
     setBusy(true);
     setError("");
     try {
+      await session.requireSepolia();
       const hash = await transferTicket(recipient.trim(), ticket.tokenId);
       session.noteActivity({ hash, tokenId: ticket.tokenId, kind: "transferred" });
       setDialog("");
@@ -101,6 +110,7 @@ export function TicketPage() {
     setBusy(true);
     setError("");
     try {
+      await session.requireSepolia();
       const hash = await returnTicket(ticket.tokenId);
       session.noteActivity({ hash, tokenId: ticket.tokenId, kind: "returned" });
       setDialog("");
@@ -138,7 +148,7 @@ export function TicketPage() {
               Connect wallet
             </button>
           )}
-          {error && <p className="alert">{error}</p>}
+          {notice && <p className="alert" role="alert">{notice}</p>}
         </div>
       </section>
     );
@@ -205,10 +215,10 @@ export function TicketPage() {
                 <br />
                 The entry right follows the current holder.
               </p>
-              <button className="btn btn-dark" type="button" onClick={() => setDialog("transfer")}>
+              <button className="btn btn-dark" type="button" onClick={() => openDialog("transfer")}>
                 Transfer ticket
               </button>
-              <button className="btn btn-light" type="button" onClick={() => setDialog("return")}>
+              <button className="btn btn-light" type="button" onClick={() => openDialog("return")}>
                 Return to organizer
               </button>
               <p className="fine">
@@ -218,7 +228,7 @@ export function TicketPage() {
               </p>
             </>
           ) : null}
-          {error && <p className="alert">{error}</p>}
+          {!dialog && notice && <p className="alert" role="alert">{notice}</p>}
         </aside>
       </div>
       {(active || keepsake) && (
@@ -260,7 +270,7 @@ export function TicketPage() {
                   />
                 </label>
                 {fieldError && <p className="alert">{fieldError}</p>}
-                <button className="btn btn-dark" type="button" disabled={busy} onClick={confirmTransfer}>
+                <button className="btn btn-dark" type="button" disabled={busy || session.wrongNetwork} onClick={confirmTransfer}>
                   {busy ? "Waiting for the wallet..." : "Confirm transfer"}
                 </button>
               </>
@@ -272,11 +282,12 @@ export function TicketPage() {
                   refund.
                 </p>
                 <p className="mono full">{session.organizer}</p>
-                <button className="btn btn-dark" type="button" disabled={busy} onClick={confirmReturn}>
+                <button className="btn btn-dark" type="button" disabled={busy || session.wrongNetwork} onClick={confirmReturn}>
                   {busy ? "Waiting for the wallet..." : "Confirm return"}
                 </button>
               </>
             )}
+            {notice && <p className="alert" role="alert">{notice}</p>}
             <button className="btn btn-light" type="button" disabled={busy} onClick={closeDialog}>
               Cancel
             </button>
