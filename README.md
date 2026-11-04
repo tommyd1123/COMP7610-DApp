@@ -2,137 +2,141 @@
 
 COMP7610 Introduction to Web3 and Blockchain — Final Project
 
-**English summary:** A ticketing DApp for a free campus seminar with 50 seats. Students connect MetaMask to claim, transfer or return an ERC-721 ticket on Sepolia. The organizer checks in the current holder once; the used NFT remains as a non-transferable souvenir. The project includes three React pages, ethers.js integration, a deployed Solidity contract, 43 recorded passing local checks, and a browser walkthrough of five successful transactions covering four operation types.
+A ticketing DApp for a free campus seminar with 50 seats. Students use MetaMask to claim, transfer or return an ERC-721 ticket on Sepolia. The organizer checks in each ticket holder once. The used NFT stays in the student's wallet as a souvenir and cannot be transferred.
 
-## 项目介绍
+## Project overview
 
-本项目以免费校园讲座为场景，在教学示例的 NFT 领取流程上增加座位容量、门票转让、退票复用和一次性入场核销。前端通过 ethers.js 读取链上状态，由 MetaMask 签署交易，合约统一执行资格、容量与权限规则。
+We built on the course example of claiming an NFT. We added a seat limit, ticket transfers, ticket returns, ticket reuse and one-time check-in. The frontend reads blockchain data through ethers.js. MetaMask signs transactions, and the smart contract checks the rules.
 
-正式应用包含 Event、My ticket 和 Organizer check-in 三个页面，已接入 Sepolia 上部署的合约。领取、转让、核销和退票的浏览器操作已完成，交易记录见下文。连接钱包、转让和退票通过弹窗完成；纪念票是 My ticket 的一种状态，不是第四个页面。
+The app has three pages: Event, My ticket and Organizer check-in. All three connect to the deployed Sepolia contract. Wallet connection, transfers and returns use dialogs. The souvenir ticket is a state on My ticket, not a fourth page.
 
-## 已实现功能
+The project records include 43 passing local tests and five successful browser transactions. These transactions cover all four ticket actions. Details are listed below.
 
-| 操作 | 页面 | 规则与结果 |
+## Features
+
+| Action | Page | Rules and result |
 | --- | --- | --- |
-| 领取 | Event · `#claim` | 有剩余座位、没有有效票且尚未入场的合资格地址可以领取；优先复用退回的 NFT，否则铸造新票。 |
-| 转让 | My ticket · `#ticket` | 当前持有人可将未核销票转给另一合资格地址；票号不变，入场资格随所有权转移，余票不变。转出者未入场时可以再次领票。 |
-| 退票 | My ticket · `#ticket` | 未核销票退回组织者库存，释放一个名额，后续领取可复用该票号。门票免费，没有 ETH 退款。 |
-| 核销 | Organizer check-in · `#door` | 只有部署者钱包可按票号核销当前持有人；核销后保留纪念 NFT，禁止转让、退票和重复核销。 |
+| Claim | Event · `#claim` | A student can claim if seats are available, the wallet has no active ticket and the wallet has not checked in. The contract reuses a returned ticket first. Otherwise, it mints a new ticket. |
+| Transfer | My ticket · `#ticket` | The holder can send an unused ticket to another wallet that meets the rules. The ticket ID and available seat count stay the same. The new holder gets the right to enter. The sender can claim again if they have not checked in. |
+| Return | My ticket · `#ticket` | The holder can return an unused ticket to the organizer. This frees one seat. Another claim can reuse the ticket ID. Tickets are free, so there is no ETH refund. |
+| Check in | Organizer check-in · `#door` | Only the wallet that deployed the contract can check in a holder by ticket ID. The holder keeps a souvenir NFT. It cannot be transferred, returned or checked in again. |
 
-每个地址最多持有一张有效票；已入场地址不能再次领取或接收门票。组织者地址负责库存和核销，不参与学生领票。退回票按后进先出顺序复用。
+Each wallet can hold at most one active ticket. A wallet that has checked in cannot claim or receive another ticket. The organizer wallet holds returned tickets and handles check-in. It cannot claim a student ticket. The most recently returned ticket is reused first.
 
-容量始终满足：
+The seat counts follow this rule:
 
 ```text
 remaining + activeCount + usedCount = 50
 ```
 
-核销将有效票转为已使用票，不重新开放座位。标准 ERC-721 转账入口同样执行业务规则；接收合约回调前完成状态更新，并对相关入口提供重入保护。
+Check-in changes an active ticket into a used ticket. It does not free a seat. Standard ERC-721 transfer functions follow the same rules. The contract updates state before a receiver callback and uses reentrancy guards on the relevant functions.
 
-## 快速启动
+## Quick start
 
-### 环境准备
+### Requirements
 
-- Node.js：建议使用项目记录的验证版本 **22.23.2**，并使用随附的 npm。
-- 安装 MetaMask 的浏览器，钱包网络选择 **Sepolia**。
-- 执行写操作的钱包需要少量 Sepolia 测试 ETH 支付 gas；门票本身免费。
+- Node.js: use **22.23.2**, the version recorded in the project tests, with its bundled npm.
+- A browser with MetaMask. Select the **Sepolia** network.
+- A small amount of Sepolia test ETH for gas. The ticket itself is free.
 
-在项目根目录执行：
+Run these commands in the project folder:
 
 ```bash
 node -v
 npm ci
 ```
 
-复制环境变量示例。在 Windows PowerShell 中执行：
+Copy the environment file. On Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-在 macOS / Linux 中执行：
+On macOS or Linux:
 
 ```bash
 cp .env.example .env
 ```
 
-**先编辑 `.env`，将占位地址替换为以下内容，再启动应用：**
+**Edit `.env` and replace the sample address with this deployed contract address:**
 
 ```dotenv
 VITE_CONTRACT_ADDRESS=0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3
 ```
 
+Start the app:
+
 ```bash
 npm run dev
 ```
 
-打开终端显示的地址，通常是 `http://localhost:5173`。顶部可进入 Event 和 My ticket，页脚 Organizer access 可进入核销页面。修改 `.env` 后需要重启 Vite。
+Open the address shown in the terminal, usually `http://localhost:5173`. Use Event and My ticket at the top. Use Organizer access in the footer to open the check-in page. Restart Vite after changing `.env`.
 
-使用现有合约运行正式 DApp **无需重新部署，也无需启动部署辅助工具**。普通钱包可以体验学生功能，只有下文列出的组织者钱包可以确认核销。
+The app uses the existing contract. **You do not need to deploy it again or start the deployment helper.** Student wallets can use the ticket pages. Only the organizer wallet listed below can confirm check-in.
 
-### 常用命令
+### Commands
 
-| 命令 | 用途 |
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` | 启动正式 DApp 开发服务器。 |
-| `npm run build` | 生成生产构建 `dist/`。 |
-| `npm run preview` | 预览已经生成的生产构建。 |
-| `npm run lint` | 使用 Oxlint 检查源码。 |
-| `npm run compile:contract` | 编译 Solidity，生成合约产物并更新前端 ABI；不部署。 |
-| `npm run test:contract` | 运行本地合约测试。 |
-| `npm run test:deployment` | 运行部署准备与验证工具测试。 |
-| `npm run test:deployment-preview` | 运行部署辅助工具测试。 |
-| `npm run prepare:deployment` | 生成标准编译输入、ABI、部署字节码与校验清单；不发送交易。 |
-| `npm run verify:deployment -- --help` | 查看部署只读核验工具的参数。 |
-| `npm run preview:deployment` | 启动可选的部署与验收辅助工具。 |
+| `npm run dev` | Start the app's development server. |
+| `npm run build` | Build the app into `dist/`. |
+| `npm run preview` | Preview the built app. |
+| `npm run lint` | Check the source with Oxlint. |
+| `npm run compile:contract` | Compile Solidity and update the contract files and frontend ABI. This does not deploy the contract. |
+| `npm run test:contract` | Run local contract tests. |
+| `npm run test:deployment` | Test the deployment preparation and checking tools. |
+| `npm run test:deployment-preview` | Test the deployment helper. |
+| `npm run prepare:deployment` | Create the standard compiler input, ABI, deployment bytecode and check files. This sends no transaction. |
+| `npm run verify:deployment -- --help` | Show the options for the read-only deployment checks. |
+| `npm run preview:deployment` | Start the optional deployment and testing helper. |
 
-## 技术栈与实现
+## Technology and code
 
-版本以本次提交的 `package-lock.json` 为准。
+The exact package versions are in `package-lock.json`.
 
-| 层 | 技术与版本 |
+| Part | Tools and versions |
 | --- | --- |
-| 前端 | React / React DOM 19.3.0 |
-| 构建 | Vite 8.3.0 |
-| 区块链接入 | ethers 6.17.0 |
-| 合约 | Solidity / solc 0.8.30；OpenZeppelin Contracts 5.6.1 |
-| 本地验证 | Hardhat 2.28.6 提供本地网络；Node.js `node:test` 运行测试 |
-| 编译配置 | Optimizer 开启，200 runs；EVM Cancun |
-| 钱包与网络 | MetaMask；Sepolia，链 ID `11155111`（`0xaa36a7`） |
+| Frontend | React / React DOM 19.3.0 |
+| Build | Vite 8.3.0 |
+| Blockchain connection | ethers 6.17.0 |
+| Contract | Solidity / solc 0.8.30; OpenZeppelin Contracts 5.6.1 |
+| Local tests | Hardhat 2.28.6 for the local network; Node.js `node:test` for tests |
+| Compiler settings | Optimizer enabled, 200 runs; EVM Cancun |
+| Wallet and network | MetaMask; Sepolia, chain ID `11155111` (`0xaa36a7`) |
 
-只读查询使用 `JsonRpcProvider` 和公共 Sepolia RPC，不需要钱包签名；写操作使用 `BrowserProvider` 获取 signer，经过 MetaMask 确认后提交。钱包模块等待交易回执后返回交易哈希。
+Read-only calls use `JsonRpcProvider` and a public Sepolia RPC. They do not need a wallet signature. Write calls use `BrowserProvider` to get a signer. MetaMask asks the user to confirm each transaction. The wallet module waits for the transaction receipt, then returns the transaction hash.
 
-前端提供错误网络、拒绝签名、重复领票和非组织者核销提示。组织者页面保留成功核销的哈希与 Etherscan 链接；如果后续状态查询失败，仍保留成功结果并提示重新查询。
+The frontend shows messages for the wrong network, rejected requests, duplicate claims and check-in by a student wallet. The organizer page keeps the successful check-in hash and Etherscan link. If the next state read fails, the success result stays visible and the user is asked to look up the ticket again.
 
-| 路径 | 内容 |
+| Path | Contents |
 | --- | --- |
-| `contracts/SeminarTickets.sol` | 领取、转让、退票复用、核销、容量和资格规则。 |
-| `src/config/contract.js` | 环境变量合约地址、链 ID、ABI 和浏览器链接配置。 |
-| `src/config/SeminarTickets.abi.json` | 编译生成的完整 ABI，包含事件和自定义错误。 |
-| `src/wallet/ethereum.js` | 钱包连接、网络切换及四类业务交易。 |
-| `src/chain/read.js` | 容量、有效票、纪念票、所有者、状态及活动记录查询。 |
-| `src/pages/ClaimPage.jsx` | 活动信息、余票和领票入口。 |
-| `src/pages/TicketPage.jsx` | 当前门票、转让、退票和已核销纪念票。 |
-| `src/pages/DoorPage.jsx` | 按票号查询、组织者核销和成功交易链接。 |
-| `src/ui/` | 共用会话、状态提示、地址格式和错误消息。 |
-| `src/App.jsx` | 三个页面的 hash 路由和共用钱包弹窗。 |
-| `test/` | 合约、部署工具及部署辅助工具测试。 |
-| `scripts/` | 编译、部署准备、只读核验及辅助工具。 |
-| `docs/evidence/` | 早期部署及 #1 领取、退票、重领的链上记录。 |
-| `docs/demo/` | 早期设计原型截图与模拟操作录屏。 |
+| `contracts/SeminarTickets.sol` | Claim, transfer, return, reuse, check-in, seat limits and wallet rules. |
+| `src/config/contract.js` | Contract address from `.env`, chain ID, ABI and explorer link settings. |
+| `src/config/SeminarTickets.abi.json` | Full compiled ABI, including events and custom errors. |
+| `src/wallet/ethereum.js` | Wallet connection, network switching and the four ticket transactions. |
+| `src/chain/read.js` | Reads for seats, active tickets, souvenir tickets, owners, ticket states and activity. |
+| `src/pages/ClaimPage.jsx` | Event details, available seats and claiming. |
+| `src/pages/TicketPage.jsx` | Current ticket, transfer, return and souvenir state. |
+| `src/pages/DoorPage.jsx` | Ticket lookup, organizer check-in and successful transaction links. |
+| `src/ui/` | Shared session state, status messages, address formatting and error messages. |
+| `src/App.jsx` | Hash routing for the three pages and the shared wallet dialog. |
+| `test/` | Tests for the contract, deployment tools and deployment helper. |
+| `scripts/` | Compilation, deployment preparation, read-only checks and helper tools. |
+| `docs/evidence/` | Early deployment records and the claim, return and reclaim of ticket #1. |
+| `docs/demo/` | Early design screenshots and a simulated prototype video. |
 
-## 测试结果
+## Test results
 
-项目记录的 2026-10-24 本地验证共 **43 项通过**。合约用例包含按不同 ERC-721 入口展开的参数化测试。
+The project records show **43 passing local tests** from 2026-10-24. Some contract cases run against several ERC-721 transfer functions.
 
-| 测试套件 | 通过数量 | 主要覆盖 |
+| Test suite | Passed | Main checks |
 | --- | ---: | --- |
-| `test/SeminarTickets.test.mjs` | 32 | 容量、退票复用、权限、标准转账、接收合约回调、重入及失败回滚。 |
-| `test/DeploymentTools.test.mjs` | 8 | 编译与部署产物、代码和状态匹配、错误输入拒绝。 |
-| `test/DeploymentPreview.test.mjs` | 3 | 账户和网络限制、重复发送保护、本地 HTTP 服务限制。 |
-| **合计** | **43** | |
+| `test/SeminarTickets.test.mjs` | 32 | Seat limits, ticket reuse, permissions, standard transfers, receiver callbacks, reentrancy and rollback on failure. |
+| `test/DeploymentTools.test.mjs` | 8 | Compiler and deployment output, code and state matching, and rejection of invalid input. |
+| `test/DeploymentPreview.test.mjs` | 3 | Account and network limits, repeated-send protection and local HTTP server limits. |
+| **Total** | **43** | |
 
-可分别复现：
+To run the checks:
 
 ```bash
 npm run test:contract
@@ -142,111 +146,111 @@ npm run build
 npm run lint
 ```
 
-上述本地测试不需要 MetaMask 或 Sepolia ETH。既有报告记录生产构建成功，lint 无错误、存在三条 React 警告，构建提示 JavaScript chunk 大于 500 kB。自动化验证与下述浏览器操作记录分别覆盖合约规则和实际用户流程。
+The local tests do not need MetaMask or Sepolia ETH. The earlier report records a successful production build. Lint had no errors and three React warnings. The build also reported a JavaScript chunk larger than 500 kB. Local tests check contract rules. The browser records below show the user flow.
 
-浏览器交易截图记录了四类业务操作的成功流程；核销成功链接和英文错误提示是在这轮操作之后补充的界面改动。现有截图不能用于证明这些后补提示已逐项通过浏览器验收，相关实现可查看 `src/pages/` 和 `src/ui/`。
+The browser screenshots show successful runs of the four ticket actions. The check-in success link and English error messages were added later. Those screenshots do not show browser tests of every later message. See `src/pages/` and `src/ui/` for the code.
 
-## Sepolia 部署与操作记录
+## Sepolia deployment and transaction records
 
-### 部署
+### Deployment
 
-- 合约：[0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3](https://sepolia.etherscan.io/address/0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3)
-- 组织者：`0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133`
-- [部署交易](https://sepolia.etherscan.io/tx/0xab973e92f52498745b6add116d73b5ea1901cd94df05d649f6027e17303bd6d9)：区块 `11984380`，回执成功。
-- 部署方式：本地部署辅助工具与 MetaMask。
-- [初始核验](docs/evidence/sepolia-initial.json)：固定区块 `11984383`，初始余票 50，已铸造 0。
-- [早期生命周期最终核验](docs/evidence/sepolia-final.json)：固定区块 `11984520`，核对运行时代码、创建字节码、元数据、组织者和状态。该记录是早期快照，不是当前实时状态。
+- Contract: [0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3](https://sepolia.etherscan.io/address/0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3)
+- Organizer: `0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133`
+- [Deployment transaction](https://sepolia.etherscan.io/tx/0xab973e92f52498745b6add116d73b5ea1901cd94df05d649f6027e17303bd6d9): block `11984380`, successful receipt.
+- Deployment method: the local deployment helper and MetaMask.
+- [Initial checks](docs/evidence/sepolia-initial.json): at block `11984383`, 50 seats were available and no tickets had been minted.
+- [Final checks for the early ticket test](docs/evidence/sepolia-final.json): at block `11984520`, the checks compared runtime code, creation bytecode, metadata, organizer and state. This is an early snapshot, not the current live state.
 
-固定区块字节码核验与 Etherscan 公开源码验证是不同事项。
+Checking bytecode at a fixed block is different from publishing verified source code on Etherscan.
 
-### 退票后复用同一 NFT
+### Reusing a returned NFT
 
-[完整生命周期记录](docs/evidence/sepolia-lifecycle.json)记录了早期测试钱包对 #1 的三笔成功交易。
+The [full ticket test record](docs/evidence/sepolia-lifecycle.json) contains three successful transactions for ticket #1.
 
-| 操作 | 票号 | 剩余座位 | 已铸造数量 | 交易 |
+| Action | Ticket | Available seats | Total minted | Transaction |
 | --- | --- | ---: | ---: | --- |
-| 领取 | #1 | 49 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0x25c0d688a5e34c4332bc641a3f9a91430d7fc109f370892bf7820f7a53797175) |
-| 退回 | #1 | 50 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0xf3937e97ac65e42508ab7b48c6ef64477b47a567963a7eca4f6eecb419d02fac) |
-| 再次领取 | #1 | 49 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0x82e7900c5f5ea40b203d0b615091b8e16f0906d163663028b54f37a5e6717386) |
+| Claim | #1 | 49 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0x25c0d688a5e34c4332bc641a3f9a91430d7fc109f370892bf7820f7a53797175) |
+| Return | #1 | 50 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0xf3937e97ac65e42508ab7b48c6ef64477b47a567963a7eca4f6eecb419d02fac) |
+| Claim again | #1 | 49 | 1 | [Etherscan](https://sepolia.etherscan.io/tx/0x82e7900c5f5ea40b203d0b615091b8e16f0906d163663028b54f37a5e6717386) |
 
-### 正式前端浏览器操作
+### Browser tests of the main app
 
-操作记录由 Wang Yukai 提供，使用以下钱包；Student A / B 是测试角色，不代表成员身份。
+Wang Yukai provided the operation record using these wallets. Student A and Student B are test roles, not team member names.
 
-| 角色 | 地址 |
+| Role | Address |
 | --- | --- |
 | Student A | `0xC9C2bE877D01Dc7a58bf3768c7da29E60f882bfd` |
 | Student B | `0xD7C38095FB3967Ca44A70AF423B82Eb31a0ce9Be` |
 | Organizer | `0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133` |
 
-五笔成功交易覆盖领取、转让、核销、退票四类操作。对应前端与 Etherscan 截图见小组报告的附录 B。
+Five successful transactions cover claim, transfer, check-in and return. Appendix B of the group report contains the frontend and Etherscan screenshots.
 
-| 顺序 | 操作 | 记录结果 | 区块 | 交易 |
+| Step | Action | Recorded result | Block | Transaction |
 | --- | --- | --- | --- | --- |
-| 1 | A 领取 #3 | #3 从组织者库存重新发放给 A，并非新铸造。 | 12020310 | [Etherscan](https://sepolia.etherscan.io/tx/0x17664386a55ae84c48df826538dc8e320672477d016b6224ebb49e83c62b144f) |
-| 2 | A 将 #3 转给 B | 票号不变；B 的页面显示有效票。 | 12020322 | [Etherscan](https://sepolia.etherscan.io/tx/0xc9b4eb09c4410757e838cc15c4116124d958cbc03f8bc7de8a946f2fcb1c905e) |
-| 3 | Organizer 核销 #3 | B 保留纪念 NFT，转让与退票按钮禁用。 | 12020333 | [Etherscan](https://sepolia.etherscan.io/tx/0x82b90e47aa75d7ce545a5c2f2269310aebe5e5ec56816a9f31dd71c7131647ee) |
-| 4 | A 领取 #4 | 新票从零地址铸造给 A。 | 12020349 | [Etherscan](https://sepolia.etherscan.io/tx/0x09832ef69fb01a7cba0fb1d618bf63abdf368a074241798c8a932139148f46a6) |
-| 5 | A 退回 #4 | NFT 回到组织者库存。 | 12020353 | [Etherscan](https://sepolia.etherscan.io/tx/0x88a8ea30f3e430c9e436226b3c05c5ec984809071c4eaae7bb010d56ee782ec0) |
+| 1 | A claims #3 | The contract sends an existing ticket from the organizer to A. It does not mint a new ticket. | 12020310 | [Etherscan](https://sepolia.etherscan.io/tx/0x17664386a55ae84c48df826538dc8e320672477d016b6224ebb49e83c62b144f) |
+| 2 | A transfers #3 to B | The ticket ID stays the same. B's page shows an active ticket. | 12020322 | [Etherscan](https://sepolia.etherscan.io/tx/0xc9b4eb09c4410757e838cc15c4116124d958cbc03f8bc7de8a946f2fcb1c905e) |
+| 3 | Organizer checks in #3 | B keeps a souvenir NFT. Transfer and return buttons are disabled. | 12020333 | [Etherscan](https://sepolia.etherscan.io/tx/0x82b90e47aa75d7ce545a5c2f2269310aebe5e5ec56816a9f31dd71c7131647ee) |
+| 4 | A claims #4 | A new ticket is minted to A from the zero address. | 12020349 | [Etherscan](https://sepolia.etherscan.io/tx/0x09832ef69fb01a7cba0fb1d618bf63abdf368a074241798c8a932139148f46a6) |
+| 5 | A returns #4 | The NFT goes back to the organizer. | 12020353 | [Etherscan](https://sepolia.etherscan.io/tx/0x88a8ea30f3e430c9e436226b3c05c5ec984809071c4eaae7bb010d56ee782ec0) |
 
-#3 已经核销，不能用于退票，因此另领 #4 演示退票。上述 #3/#4 记录与早期 #1 生命周期是两个独立测试阶段。
+Ticket #3 was already used, so it could not be returned. A claimed #4 to test the return action. The #3/#4 browser tests and the earlier #1 reuse test are separate test sessions.
 
-## 设计原型与部署辅助工具
+## Design prototype and deployment helper
 
-### 早期界面设计
+### Early interface design
 
-- [Figma 设计稿](https://www.figma.com/design/heOrdlDjJbrbyY5WagefQH/COMP7610-%C2%B7-Seminar-Tickets-%C2%B7-Monochrome?node-id=0-1&t=IKL0Dn3s5v6NEcxV-1)
-- [原型操作录屏](docs/demo/DAPP-原型操作演示.mp4)
-- [活动领票](docs/demo/01-活动领票.png)、[我的门票](docs/demo/02-我的门票.png)、[主办方检票](docs/demo/03-主办方检票.png)、[纪念票状态](docs/demo/04-已核销纪念票.png)
+- [Figma design](https://www.figma.com/design/heOrdlDjJbrbyY5WagefQH/COMP7610-%C2%B7-Seminar-Tickets-%C2%B7-Monochrome?node-id=0-1&t=IKL0Dn3s5v6NEcxV-1)
+- [Prototype video](docs/demo/DAPP-%E5%8E%9F%E5%9E%8B%E6%93%8D%E4%BD%9C%E6%BC%94%E7%A4%BA.mp4)
+- [Event](docs/demo/01-%E6%B4%BB%E5%8A%A8%E9%A2%86%E7%A5%A8.png), [My ticket](docs/demo/02-%E6%88%91%E7%9A%84%E9%97%A8%E7%A5%A8.png), [Organizer check-in](docs/demo/03-%E4%B8%BB%E5%8A%9E%E6%96%B9%E6%A3%80%E7%A5%A8.png), [Souvenir ticket](docs/demo/04-%E5%B7%B2%E6%A0%B8%E9%94%80%E7%BA%AA%E5%BF%B5%E7%A5%A8.png)
 
-![早期三个核心页面设计](docs/demo/三个核心页面总览.png)
+![Early design of the three main pages](docs/demo/%E4%B8%89%E4%B8%AA%E6%A0%B8%E5%BF%83%E9%A1%B5%E9%9D%A2%E6%80%BB%E8%A7%88.png)
 
-`docs/demo/` 中的图片和视频展示早期 Figma 模拟交互，数值和地址是演示数据，不作为真实链上操作证据。正式 DApp 位于 `src/`，浏览器交易记录列于上一节。
+The images and video in `docs/demo/` show a Figma simulation. Their numbers and addresses are sample data, not proof of real blockchain transactions. The main app is in `src/`. Its browser transaction records are listed above.
 
-### 可选部署辅助工具
+### Optional deployment helper
 
-`scripts/deployment-preview/` 用于部署及领取、退票、重领验收，通过 `npm run preview:deployment` 启动，默认地址为 `http://127.0.0.1:4174`。它与 `npm run dev` 启动的正式应用分开。
+`scripts/deployment-preview/` supports deployment and the claim, return and reclaim tests. Start it with `npm run preview:deployment`. Its default address is `http://127.0.0.1:4174`. It is separate from the main app started by `npm run dev`.
 
-该工具保留本次验收指定账户的限制，不是供任意钱包体验的通用页面。其写操作通过 MetaMask 提交 Sepolia 交易。一般运行与评审直接使用正式 DApp 即可。
+The helper only supports the accounts set for the deployment tests. It is not a general page for any wallet. Its write actions send Sepolia transactions through MetaMask. Use the main app for normal use and review.
 
-部署细节见 [部署与交接文档](docs/05-成员2部署与交接.md)。
+See the [deployment and handover guide](docs/05-%E6%88%90%E5%91%982%E9%83%A8%E7%BD%B2%E4%B8%8E%E4%BA%A4%E6%8E%A5.md) for details.
 
-## 已知限制
+## Known limits
 
-- 限制按地址生效，无法阻止同一个人使用多个钱包；线下身份与实际到场仍由组织者核验。
-- 组织者地址和 50 座容量固定，没有紧急暂停、组织者轮换、整场活动取消或合约升级机制。
-- 活动日期和地点由前端展示；合约没有按活动时间自动关闭领取或核销的逻辑。
-- 前端依赖钱包和公共 RPC 的可用性。只读查询使用固定 Sepolia RPC，事件扫描起点与本次部署对应。
-- 不包含 NFT 图片和逐票元数据。核销后的纪念 NFT 表示链上状态，不保证钱包展示收藏品图片。
-- 转让和退票后，原持有人可能进入无票页面；交易结果仍可通过上面的 Etherscan 记录核对。
+- The rules apply per wallet address, not per person. One person can use several wallets. The organizer still checks who attends in person.
+- The organizer address and 50-seat limit are fixed. There is no emergency pause, organizer change, event cancellation or contract upgrade.
+- The frontend shows the event date and location. The contract does not close claims or check-in based on the event time.
+- The frontend needs a working wallet and public RPC. Read-only calls use a fixed Sepolia RPC. Event queries start at the deployment block.
+- The NFT has no artwork or per-ticket metadata. The souvenir state is stored on-chain, but wallets may not show a collectible image.
+- After a transfer or return, the sender may see the no-ticket page. The Etherscan links above still show the transaction result.
 
-## 小组贡献
+## Team contributions
 
-五位成员共同讨论了项目背景、免费讲座场景、50 座容量、资格规则和完整票务流程，再分配实现、操作验证、界面完善与报告任务。背景和流程属于共同设计；下表记录实际分工及后期产出。
+All five members discussed the background, seminar idea, 50-seat limit, wallet rules and full ticket flow. We then split the code, browser tests, interface updates and report work. The background and flow were a shared design. The table lists each member's main work and output.
 
-| 成员 | UID | 主要职责 | 完成内容与可核对产出 |
+| Member | UID | Main role | Work and output |
 | --- | --- | --- | --- |
-| Dong Yiyang | 3036842698 | 智能合约与部署 | 实现领取、转让、退票复用、一次性核销、资格与容量规则；生成完整 ABI，准备本地测试和部署工具，完成 Sepolia 部署及链上核验。产出：`contracts/`、`test/`、`scripts/`、`docs/evidence/`；[合约交付提交](https://github.com/tommyd1123/COMP7610-DApp/commit/9e9e8f6)。 |
-| Lu Shijie | 3036841228 | 前端开发与集成 | 完成票务流程原型、Event / My ticket / Organizer check-in 三个正式页面、共用钱包弹窗与会话、链上查询和四类交易接入；补充加载、无票与纪念票状态。产出：`src/App.jsx`、`src/pages/`、`src/ui/`、`src/wallet/ethereum.js`、`src/chain/read.js`；[原型与流程](https://github.com/tommyd1123/COMP7610-DApp/commit/b915711)、[钱包及门票接入](https://github.com/tommyd1123/COMP7610-DApp/commit/b6d208a)、[主办方核销页面](https://github.com/tommyd1123/COMP7610-DApp/commit/2661b4d)。 |
-| Wang Yukai | 3033113371 | 钱包操作与测试 | 准备 Student A、Student B 和 Organizer 三个 Sepolia 钱包，在正式网页完成领取、转让、核销和退票，逐笔打开 Etherscan 核对结果，整理交易哈希、流程说明与截图到操作 Word。产出：上文五笔成功交易，以及小组报告附录 B 的操作与回执截图。 |
-| Zhang Yidan | 3036841668 | 页面结果与错误提示补全 | 在既有版式上补充核销成功后的 Etherscan 链接，以及 MetaMask 拒绝、错误网络、重复领票和普通钱包访问核销页的英文提示与禁用状态。产出限定在 `src/pages/`、`src/ui/`；[页面反馈提交](https://github.com/tommyd1123/COMP7610-DApp/commit/18e385e)、[后续完善](https://github.com/tommyd1123/COMP7610-DApp/commit/877035d)。 |
-| Zhang Ke | 3036866280 | 报告统筹 | 梳理全组共同确定的背景、设想和流程，汇总合约、前端实现及操作测试材料，整理贡献分工、参考资料、交易登记与截图，统稿形成小组报告。产出：小组报告正文、交易登记和操作证据附录。 |
+| Dong Yiyang | 3036842698 | Smart contract and deployment | Built claim, transfer, return, reuse and one-time check-in. Added wallet and seat rules, the full ABI, local tests and deployment tools. Deployed and checked the contract on Sepolia. Output: `contracts/`, `test/`, `scripts/`, `docs/evidence/`; [contract delivery commit](https://github.com/tommyd1123/COMP7610-DApp/commit/9e9e8f6). |
+| Lu Shijie | 3036841228 | Frontend and integration | Built the ticket-flow prototype and the three app pages. Added the shared wallet dialog and session state. Connected blockchain reads and the four write actions. Added loading, no-ticket and souvenir states. Output: `src/App.jsx`, `src/pages/`, `src/ui/`, `src/wallet/ethereum.js`, `src/chain/read.js`; [prototype and flow](https://github.com/tommyd1123/COMP7610-DApp/commit/b915711), [wallet and ticket integration](https://github.com/tommyd1123/COMP7610-DApp/commit/b6d208a), [organizer page](https://github.com/tommyd1123/COMP7610-DApp/commit/2661b4d). |
+| Wang Yukai | 3033113371 | Wallet operations and testing | Prepared the Student A, Student B and Organizer wallets on Sepolia. Ran claim, transfer, check-in and return in the main app. Checked each transaction on Etherscan. Saved hashes, steps and screenshots in a Word record. Output: the five transactions above and the operation and receipt screenshots in Appendix B of the group report. |
+| Zhang Yidan | 3036841668 | Interface results and error messages | Added the Etherscan link after check-in. Added English messages and disabled states for MetaMask rejection, wrong network, duplicate claims and student wallets on the organizer page. Kept the existing layout. Changes are in `src/pages/` and `src/ui/`; [interface update](https://github.com/tommyd1123/COMP7610-DApp/commit/18e385e), [follow-up changes](https://github.com/tommyd1123/COMP7610-DApp/commit/877035d). |
+| Zhang Ke | 3036866280 | Report coordination | Wrote up the background, idea and flow agreed by the team. Collected contract, frontend and browser test material. Put together the contribution table, references, transaction list and screenshots. Output: the group report, transaction list and evidence appendices. |
 
-### 后期协作与交付记录
+### Later work and handover
 
-1. 合约部署后，前端集成和操作测试沿用同一个 Sepolia 合约地址；正常运行和后期验收不重新部署合约。
-2. 钱包操作与测试阶段使用正式网页跑通四类业务操作。约定的调用故障排查范围为 `src/wallet/ethereum.js`；核销后的 #3 不能退票，因此另领取 #4 完成退票验证。
-3. 页面完善阶段只调整 `src/pages/` 和 `src/ui/` 的结果展示、提示与交互保护，保留原有三个页面和版式。
-4. 报告统筹阶段汇总上述实现、交易和截图，分别说明已实现功能、已记录的成功操作及仍需补充验证的界面反馈。
+1. After deployment, frontend integration and browser tests used the same Sepolia contract. Normal use and later tests did not need a new deployment.
+2. The wallet tests covered all four ticket actions in the main app. The agreed scope for fixing wallet calls was `src/wallet/ethereum.js`. Ticket #3 was already used, so #4 was claimed for the return test.
+3. The interface updates changed result messages and button states in `src/pages/` and `src/ui/`. The three-page layout stayed the same.
+4. The report combined the code details, transactions and screenshots. It described the built features, recorded successful actions and later interface messages that still need browser checks.
 
-贡献同时包含共同设计、代码实现、实际操作测试和报告整理。Git 提交用于核对代码演进；钱包测试和报告工作还需结合操作记录与最终报告查看。
+Contributions include shared design, code, browser testing and report work. Git commits show code changes. The operation records and final report also show work that is not recorded in commits.
 
-## 相关资料
+## Related documents
 
-- [合约说明](contracts/README.md)
-- [票务流程设计](docs/03-转让退票与票务流程.md)
-- [页面与交互设计](docs/04-页面与交互设计.md)
-- [合约设计与实现材料](docs/report/成员2-合约设计与实现.md)
-- [课程教学示例](https://github.com/jzjzzzzzzz/nft-ticket-dapp)
+- [Contract guide](contracts/README.md)
+- [Ticket flow design](docs/03-%E8%BD%AC%E8%AE%A9%E9%80%80%E7%A5%A8%E4%B8%8E%E7%A5%A8%E5%8A%A1%E6%B5%81%E7%A8%8B.md)
+- [Page and interaction design](docs/04-%E9%A1%B5%E9%9D%A2%E4%B8%8E%E4%BA%A4%E4%BA%92%E8%AE%BE%E8%AE%A1.md)
+- [Contract design and implementation notes](docs/report/%E6%88%90%E5%91%982-%E5%90%88%E7%BA%A6%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md)
+- [Course example](https://github.com/jzjzzzzzzz/nft-ticket-dapp)
 
-`docs/` 中保留部分早期设计和任务分配记录，其中的“待实现”描述和成员编号属于当时的开发阶段。最终姓名与职责对应以上方“小组贡献”为准；当前功能状态以本 README、提交源码和小组最终报告为准。
+Some files in `docs/` are early design and task notes. Their unfinished-task labels and member numbers describe that earlier stage. Use the Team contributions section above for the final names and roles. Use this README, the source code and the final group report for the current project state.
