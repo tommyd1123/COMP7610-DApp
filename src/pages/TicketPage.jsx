@@ -8,14 +8,23 @@ import { returnTicket, transferTicket } from "../wallet/ethereum.js";
 
 export function TicketPage() {
   const session = useSession();
+  // Remount wallet-specific state, dialogs and pending reads on account changes.
+  return <AccountTicket key={session.account.toLowerCase()} session={session} />;
+}
+
+function AccountTicket({ session }) {
   const [ticket, setTicket] = useState(null);
-  const [activity, setActivity] = useState(session.activity);
+  const [chainActivity, setChainActivity] = useState(null);
   const [dialog, setDialog] = useState("");
   const [recipient, setRecipient] = useState("");
   const [fieldError, setFieldError] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [ticketError, setTicketError] = useState("");
   const [loading, setLoading] = useState(() => Boolean(session.account));
+  // Confirmed wallet receipts remain available even if the RPC is slow or fails.
+  const activity = session.activity || chainActivity;
+  const receipt = activity?.hash ? <TicketActivity activity={activity} /> : null;
 
   useEffect(() => {
     if (!session.account) {
@@ -25,12 +34,14 @@ export function TicketPage() {
     }
     let ignore = false;
     setLoading(true);
+    setTicket(null);
+    setTicketError("");
     readTicketFor(session.account)
       .then((nextTicket) => {
         if (!ignore) setTicket(nextTicket);
       })
       .catch(() => {
-        if (!ignore) setError("This ticket could not be read. Refresh and try again.");
+        if (!ignore) setTicketError("This ticket could not be read. Refresh and try again.");
       })
       .finally(() => {
         if (!ignore) setLoading(false);
@@ -45,8 +56,7 @@ export function TicketPage() {
     let ignore = false;
     readActivity(session.account)
       .then((nextActivity) => {
-        if (ignore || !nextActivity) return;
-        setActivity((current) => (current?.hash ? current : nextActivity));
+        if (!ignore) setChainActivity(nextActivity);
       })
       .catch(() => {});
     return () => {
@@ -57,7 +67,7 @@ export function TicketPage() {
   const number = ticketNumber(ticket?.tokenId);
   const active = Boolean(ticket?.active);
   const keepsake = Boolean(ticket?.entered && !ticket?.active);
-  const notice = error || (session.wrongNetwork ? WRONG_NETWORK_MESSAGE : "");
+  const notice = error || ticketError || (session.wrongNetwork ? WRONG_NETWORK_MESSAGE : "");
 
   function openDialog(kind) {
     setError("");
@@ -123,8 +133,13 @@ export function TicketPage() {
 
   if (session.account && loading) {
     return (
-      <section className="ticket-empty" aria-busy="true">
-        <div className="spinner" role="status" aria-label="Loading your ticket" />
+      <section className="ticket-page">
+        <div className="ticket-empty" aria-busy="true">
+          <div className="empty-stack">
+            <div className="spinner" role="status" aria-label="Loading your ticket" />
+            {receipt}
+          </div>
+        </div>
       </section>
     );
   }
@@ -133,11 +148,13 @@ export function TicketPage() {
     return (
       <section className="ticket-empty">
         <div className="empty-stack">
-          <h2>{session.account ? "Nothing to manage." : "Connect to see your ticket."}</h2>
+          <h2>{!session.account ? "Connect to see your ticket." : ticketError ? "Ticket status unavailable." : "Nothing to manage."}</h2>
           <p className="deck">
-            {session.account
-              ? "This wallet does not hold an active or checked-in ticket."
-              : "A connected wallet can hold, transfer, or return one ticket."}
+            {!session.account
+              ? "A connected wallet can hold, transfer, or return one ticket."
+              : ticketError
+                ? "Refresh to check this wallet's current ticket."
+                : "This wallet does not hold an active or checked-in ticket."}
           </p>
           {session.account ? (
             <a className="btn btn-dark" href="#claim">
@@ -149,6 +166,7 @@ export function TicketPage() {
             </button>
           )}
           {notice && <p className="alert" role="alert">{notice}</p>}
+          {receipt}
         </div>
       </section>
     );
@@ -231,16 +249,9 @@ export function TicketPage() {
           {!dialog && notice && <p className="alert" role="alert">{notice}</p>}
         </aside>
       </div>
-      {(active || keepsake) && (
+      {receipt || (
         <div className="activity">
-          <p>
-            Recent activity / Ticket #{number} {activity?.kind || (keepsake ? "checked in" : "is active")}
-          </p>
-          {activity?.hash && (
-            <a href={`${SEPOLIA_EXPLORER_URL}/tx/${activity.hash}`} target="_blank" rel="noreferrer">
-              View transaction
-            </a>
-          )}
+          <p>Ticket #{number} {keepsake ? "checked in" : "is active"}</p>
         </div>
       )}
       {dialog && (
@@ -295,5 +306,16 @@ export function TicketPage() {
         </div>
       )}
     </section>
+  );
+}
+
+function TicketActivity({ activity }) {
+  return (
+    <div className="activity" role="status">
+      <p>Confirmed / Ticket #{ticketNumber(activity.tokenId)} {activity.kind}</p>
+      <a href={`${SEPOLIA_EXPLORER_URL}/tx/${activity.hash}`} target="_blank" rel="noreferrer">
+        View transaction on Etherscan
+      </a>
+    </div>
   );
 }

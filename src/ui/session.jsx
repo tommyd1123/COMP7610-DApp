@@ -15,14 +15,20 @@ export function useSession() {
 }
 
 export function SessionProvider({ children }) {
-  const [account, setAccount] = useState("");
+  const [wallet, setWallet] = useState({ account: "", activity: null });
+  const { account, activity } = wallet;
   const [organizer, setOrganizer] = useState("");
   const [modal, setModal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [activity, setActivity] = useState(null);
   const [revision, setRevision] = useState(0);
   const [chainId, setChainId] = useState(null);
+
+  const setAccount = useCallback((next) => {
+    setWallet((current) => current.account.toLowerCase() === next.toLowerCase()
+      ? current
+      : { account: next, activity: null });
+  }, []);
 
   const refreshNetwork = useCallback(async () => {
     if (!window.ethereum?.request) return null;
@@ -60,7 +66,7 @@ export function SessionProvider({ children }) {
       setAccount(next);
       setRevision((value) => value + 1);
     });
-  }, []);
+  }, [setAccount]);
 
   const openWallet = useCallback(() => {
     setError("");
@@ -92,17 +98,20 @@ export function SessionProvider({ children }) {
     } finally {
       setBusy(false);
     }
-  }, [refreshNetwork]);
+  }, [refreshNetwork, setAccount]);
 
   const disconnect = useCallback(() => {
     setAccount("");
     setModal(false);
-  }, []);
+  }, [setAccount]);
 
   const noteActivity = useCallback((entry) => {
-    setActivity(entry);
+    // A receipt from the previous wallet may arrive after accountsChanged.
+    setWallet((current) => account && current.account.toLowerCase() === account.toLowerCase()
+      ? { ...current, activity: entry }
+      : current);
     setRevision((value) => value + 1);
-  }, []);
+  }, [account]);
 
   const value = {
     account,
