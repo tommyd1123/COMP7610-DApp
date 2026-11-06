@@ -26,8 +26,14 @@ async function send(tx) {
   return receipt?.hash ?? tx.hash;
 }
 
-export async function connectAccount() {
+export async function connectAccount({ chooseAccount = false } = {}) {
   requireWallet();
+  if (chooseAccount) {
+    await window.ethereum.request({
+      method: "wallet_requestPermissions",
+      params: [{ eth_accounts: {} }],
+    });
+  }
   const provider = new BrowserProvider(window.ethereum);
   const accounts = await provider.send("eth_requestAccounts", []);
   const network = await provider.getNetwork();
@@ -60,8 +66,13 @@ export async function admitStudent(tokenId) {
 
 export function onWalletChange(handler) {
   if (!window.ethereum?.on) return () => {};
+  const wallet = window.ethereum;
   const onAccounts = (accounts) => handler(accounts[0] ?? "");
-  window.ethereum.on("accountsChanged", onAccounts);
-  window.ethereum.on("chainChanged", () => window.location.reload());
-  return () => window.ethereum.removeListener("accountsChanged", onAccounts);
+  const onChain = () => window.location.reload();
+  wallet.on("accountsChanged", onAccounts);
+  wallet.on("chainChanged", onChain);
+  return () => {
+    wallet.removeListener("accountsChanged", onAccounts);
+    wallet.removeListener("chainChanged", onChain);
+  };
 }

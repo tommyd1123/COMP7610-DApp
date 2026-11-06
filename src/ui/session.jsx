@@ -19,6 +19,7 @@ export function SessionProvider({ children }) {
   const { account, activity } = wallet;
   const [organizer, setOrganizer] = useState("");
   const [modal, setModal] = useState(false);
+  const [chooseAccount, setChooseAccount] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
@@ -69,6 +70,13 @@ export function SessionProvider({ children }) {
   }, [setAccount]);
 
   const openWallet = useCallback(() => {
+    setChooseAccount(false);
+    setError("");
+    setModal(true);
+  }, []);
+
+  const openAccountSwitcher = useCallback(() => {
+    setChooseAccount(true);
     setError("");
     setModal(true);
   }, []);
@@ -83,7 +91,7 @@ export function SessionProvider({ children }) {
     setBusy(true);
     setError("");
     try {
-      const next = await connectAccount();
+      const next = await connectAccount({ chooseAccount });
       await refreshNetwork();
       setAccount(next);
       setModal(false);
@@ -98,7 +106,7 @@ export function SessionProvider({ children }) {
     } finally {
       setBusy(false);
     }
-  }, [refreshNetwork, setAccount]);
+  }, [refreshNetwork, setAccount, chooseAccount]);
 
   const disconnect = useCallback(() => {
     setAccount("");
@@ -117,6 +125,7 @@ export function SessionProvider({ children }) {
     account,
     organizer,
     modal,
+    chooseAccount,
     busy,
     error,
     activity,
@@ -124,6 +133,7 @@ export function SessionProvider({ children }) {
     wrongNetwork: isWrongNetwork(chainId),
     requireSepolia,
     openWallet,
+    openAccountSwitcher,
     closeWallet,
     connect,
     disconnect,

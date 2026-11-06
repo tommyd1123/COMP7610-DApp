@@ -75,6 +75,16 @@ function Shell() {
                 className="btn btn-light"
                 type="button"
                 onClick={() => {
+                  setDetails(false);
+                  session.openAccountSwitcher();
+                }}
+              >
+                Switch account
+              </button>
+              <button
+                className="btn btn-light"
+                type="button"
+                onClick={() => {
                   session.disconnect();
                   setDetails(false);
                 }}
@@ -105,12 +115,21 @@ function Shell() {
             aria-labelledby="wallet-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 id="wallet-title">Connect a wallet</h2>
-            <p className="deck">Continue with MetaMask on Sepolia. This page never asks for a seed phrase.</p>
+            <h2 id="wallet-title">{session.chooseAccount ? "Switch account" : "Connect a wallet"}</h2>
+            <p className="deck">
+              {session.chooseAccount
+                ? "Choose the account you want to use in MetaMask, then approve the connection."
+                : "Continue with MetaMask on Sepolia. To use a different account, choose another account below."}
+            </p>
             {session.error && <p className="alert">{session.error}</p>}
             <button className="btn btn-dark" type="button" disabled={session.busy} onClick={session.connect}>
-              {session.busy ? "Waiting for the wallet..." : "Continue with MetaMask"}
+              {session.busy ? "Waiting for the wallet..." : session.chooseAccount ? "Choose account in MetaMask" : "Continue with MetaMask"}
             </button>
+            {!session.chooseAccount && (
+              <button className="btn btn-light" type="button" disabled={session.busy} onClick={session.openAccountSwitcher}>
+                Choose another account
+              </button>
+            )}
             <button className="btn btn-light" type="button" disabled={session.busy} onClick={session.closeWallet}>
               Cancel
             </button>

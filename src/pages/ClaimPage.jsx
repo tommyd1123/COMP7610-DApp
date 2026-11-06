@@ -123,7 +123,7 @@ export function ClaimPage() {
           <div className="facts">
             <div>
               <p className="kicker">When</p>
-              <p>1 November 2026, 10:00</p>
+              <p>11 November 2026, 10:00</p>
             </div>
             <div>
               <p className="kicker">Where</p>
