@@ -36,17 +36,30 @@ Check-in changes an active ticket into a used ticket. It does not free a seat. S
 ### Requirements
 
 - Node.js: use **22.23.2**, the version recorded in the project tests, with its bundled npm.
+- Git, if cloning the repository. Alternatively, download the repository ZIP and extract it.
 - A browser with MetaMask. Select the **Sepolia** network.
 - A small amount of Sepolia test ETH for gas. The ticket itself is free.
+- Internet access for installing dependencies and reading or sending Sepolia transactions.
 
-Run these commands in the project folder:
+### Install
+
+Clone the repository and enter its root folder:
+
+```bash
+git clone https://github.com/tommyd1123/COMP7610-DApp.git
+cd COMP7610-DApp
+```
+
+If using a ZIP or an existing checkout, open a terminal in the extracted project folder containing `package.json` instead. Install the versions recorded in `package-lock.json`:
 
 ```bash
 node -v
 npm ci
 ```
 
-Copy the environment file. On Windows PowerShell:
+### Configure
+
+For a new checkout, copy the environment example. Keep an existing `.env` if already configured. On Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
@@ -64,6 +77,12 @@ cp .env.example .env
 VITE_CONTRACT_ADDRESS=0x273d4F66420C2Bac602bdcfe4A5Bc395B1dC2dE3
 ```
 
+This is the only frontend environment variable currently read by the code. It is a public **contract address**, not a wallet address or private key. Wallet signing stays in MetaMask. The app does not require an API key, database or separate backend server.
+
+The read-only RPC URL is set in `src/chain/read.js` to `https://ethereum-sepolia-rpc.publicnode.com`; event queries begin at block `11984380`. The network and explorer are set in `src/config/contract.js`. The checked-in ABI already matches the existing deployment, so compiling Solidity is not required to start the frontend.
+
+### Run
+
 Start the app:
 
 ```bash
@@ -73,6 +92,40 @@ npm run dev
 Open the address shown in the terminal, usually `http://localhost:5173`. Use Event and My ticket at the top. Use Organizer access in the footer to open the check-in page. Restart Vite after changing `.env`.
 
 The app uses the existing contract. **You do not need to deploy it again or start the deployment helper.** Student wallets can use the ticket pages. Only the organizer wallet listed below can confirm check-in.
+
+### Try the app
+
+1. Open Event (`#claim`). The available-seat count should load from the contract. The shared contract already contains earlier test transactions, so the count may be lower than 50.
+2. Connect a student wallet on Sepolia. It must have test ETH for gas, no active ticket and no previous check-in. Claim a ticket, confirm in MetaMask and wait for the receipt. Open My ticket (`#ticket`) to see the ticket ID and owner.
+3. To test a transfer, use a second eligible student wallet as the recipient. Click the connected address in the header and choose **Switch account** to select the receiving account through MetaMask. Confirm that My ticket shows the same ticket ID for the new holder.
+4. To test a return, use the current holder's wallet and choose **Return to organizer** on an active ticket. After confirmation, one seat becomes available. A later claim can reuse the returned ticket.
+5. To test check-in on an active ticket, connect the **actual organizer wallet** (`0x5bA8D6f1dCDb101D6a4EF905788CEBC048b2b133`), open Organizer access (`#door`), look up the ticket ID and confirm check-in. The holder then sees a souvenir ticket. Check-in is permanent for that wallet and ticket; test transfer and return before checking in.
+
+A reviewer can use their own student wallets. Knowing the organizer's public address does not grant permission to check in tickets; this step requires the team member who controls that wallet. To review all roles independently, deploy a separate instance using the [contract guide](contracts/README.md#remix-备用部署步骤), configure its address, and update `FROM_BLOCK` in `src/chain/read.js` to its deployment block. The new deployer becomes that instance's organizer.
+
+### Build and preview
+
+After configuring `.env`, run these commands in order:
+
+```bash
+npm run build
+npm run preview
+```
+
+Open the preview URL printed by Vite, normally `http://localhost:4173`. Keep the terminal running; press `Ctrl+C` to stop either server. Vite embeds the contract address at build time, so changing `.env` requires a new build before previewing or hosting `dist/`. The preview server is for checking the production build locally.
+
+### Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| Installation or Vite reports an unsupported Node version | Check `node -v`, select Node.js 22.23.2 and run `npm ci` again from the folder containing `package.json`. |
+| Invalid contract address, blank page or seat count does not load | Replace the placeholder in the root `.env` with the deployed address above. Restart the development server, or rebuild before using preview. |
+| MetaMask is unavailable | Install and unlock the extension in the same browser profile that opens the app, then reload the page. |
+| Wrong-network message | Select Sepolia in MetaMask (chain ID `11155111`) and reload if needed. |
+| A transaction cannot pay for gas | Fund the sending wallet with Sepolia test ETH. Free admission does not remove the network gas fee. |
+| The app shows the wrong account | Click the connected address, choose **Switch account**, and select the intended account in MetaMask. |
+| Claim, transfer or check-in is disabled or rejected | Check ticket ownership, available seats, whether the wallet already holds a ticket or has checked in, and whether check-in uses the organizer wallet. |
+| Reads or activity links fail despite correct configuration | Check access to the public RPC. If it is unavailable or limits event queries, replace the URL in `src/chain/read.js` with a working Sepolia RPC and restart or rebuild. There is no RPC environment variable in this version. |
 
 ### Commands
 
@@ -244,13 +297,3 @@ All five members discussed the background, seminar idea, 50-seat limit, wallet r
 4. The report combined the code details, transactions and screenshots. It described the built features, recorded successful actions and later interface messages that still need browser checks.
 
 Contributions include shared design, code, browser testing and report work. Git commits show code changes. The operation records and final report also show work that is not recorded in commits.
-
-## Related documents
-
-- [Contract guide](contracts/README.md)
-- [Ticket flow design](docs/03-%E8%BD%AC%E8%AE%A9%E9%80%80%E7%A5%A8%E4%B8%8E%E7%A5%A8%E5%8A%A1%E6%B5%81%E7%A8%8B.md)
-- [Page and interaction design](docs/04-%E9%A1%B5%E9%9D%A2%E4%B8%8E%E4%BA%A4%E4%BA%92%E8%AE%BE%E8%AE%A1.md)
-- [Contract design and implementation notes](docs/report/%E6%88%90%E5%91%982-%E5%90%88%E7%BA%A6%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md)
-- [Course example](https://github.com/jzjzzzzzzz/nft-ticket-dapp)
-
-Some files in `docs/` are early design and task notes. Their unfinished-task labels and member numbers describe that earlier stage. Use the Team contributions section above for the final names and roles. Use this README, the source code and the final group report for the current project state.
